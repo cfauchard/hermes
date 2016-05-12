@@ -6,7 +6,7 @@
 # Copyright (C) 2016, Christophe Fauchard
 #-----------------------------------------------------------------
 
-import hermes, paramiko
+import hermes, paramiko, sys
 from hermes.connection import Connection
 from hermes.exception import AuthenticationException
 
@@ -51,13 +51,13 @@ class SFTPConnection(Connection):
 
 if __name__ == '__main__':
     
-    host='192.168.1.24'
-    username='root'
-    password='tgmmdm'
+    # host='192.168.1.24'
+    # username='root'
+    # password='tgmmdm'
 
-##    host='xjsd.itnovem.fr'
-##    username='chris'
-##    password='tgmmdm!'
+    host='xjsd.itnovem.fr'
+    username='chris'
+    password='tgmmdm!'
 
     try:
         print("version hermes: " + hermes.__version__)

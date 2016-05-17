@@ -9,8 +9,7 @@
 #-----------------------------------------------------------------
 
 import sys
-sys.path.insert(0, "../")
-import hermes
+import stat
     
 import paramiko, sys
 from hermes.exception import AuthenticationException
@@ -48,6 +47,17 @@ class SFTPConnection():
             return(None)
         
         return(self.sftp.listdir())
+    
+    def is_dir(self, file_name):
+        st = self.sftp.lstat(file_name)
+        if stat.S_ISDIR(st.st_mode):
+            return(True)
+        else:
+            return(False)
+    
+    def get_size(self, file_name):
+        st = self.sftp.lstat(file_name)
+        return(st.st_size)
 
     def get(self, remotepath, localpath=None):
         if localpath == None:

@@ -18,6 +18,8 @@ activation = yes
 command = get
 
 excluderegex = \.tmp$
+#excluderegex = ^\.
+
 localdir = "./tmp/upload/sample1"
 statuslogdir = "./tmp/journal/sample1"
 

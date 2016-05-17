@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------
-# hermes: sample1.hermes
+# hermes: sample2.hermes
 #
 # hermes sample config file
 #
@@ -7,10 +7,11 @@
 #-----------------------------------------------------------------
 [hermes]
 
-name = Sample_SFTP_1
+name = Sample_SFTP_2
 user = chris
+cryptedpassword = uII1DIE=
 
-host = xjsd.itnovem.fr
+host = 192.168.1.29
 protocol = sftp
 
 deleteflag = no
@@ -24,7 +25,3 @@ localdir = "./tmp/upload/sample1"
 statuslogdir = "./tmp/journal/sample1"
 
 remotedir = "./tmp"
-
-[sftp]
-
-private_key = C:/USBKEY/LiberKey/MyApps/KittyPortable/itnovem_openssh.ppk

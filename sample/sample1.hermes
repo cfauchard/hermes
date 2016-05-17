@@ -1,0 +1,28 @@
+#-----------------------------------------------------------------
+# hermescmd: sample1.hermes
+#
+# hermes command line tool
+#
+# Copyright (C) 2016, Christophe Fauchard
+#-----------------------------------------------------------------
+[hermes]
+
+name = Sample_SFTP_1
+user = chris
+
+host = xjsd.itnovem.fr
+protocol = sftp
+
+deleteflag = no
+activation = yes
+command = get
+
+excluderegex = \.tmp$
+localdir = "./tmp/upload/sample1"
+statuslogdir = "./tmp/journal/sample1"
+
+remotedir = "./tmp"
+
+[sftp]
+
+private_key = C:/USBKEY/LiberKey/MyApps/KittyPortable/itnovem_openssh.ppk

@@ -9,11 +9,10 @@
 #-----------------------------------------------------------------
 
 import sys
-sys.path.insert(0, "../")
-sys.path.insert(0, "../../zeus")
+import pypath
 
-import zeus
 import hermes
+import zeus
 import argparse
 import re
 import stat

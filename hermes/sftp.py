@@ -15,8 +15,28 @@ import paramiko, sys
 from hermes.exception import AuthenticationException
 
 class SFTPConnection():
+
     """
     SFTP Class based on Paramiko
+    
+    Attributes:
+    - host
+    - port
+    - username
+    - password
+    - private_key_file
+    - sftp: paramiko.SFTPClient object
+    - transport: paramiko.Transport object
+    
+    Methods:
+    - chdir(dir)
+    - list()
+    - bool is_dir(path)
+    - int get_size(path)
+    - get(remotepath, localpath=None)
+    - put(localpath, remotepath=None)
+    - remove(path)
+    - close()
     """
 
     def __init__(self, host, username, port=22, password=None, private_key=None):
@@ -27,47 +47,102 @@ class SFTPConnection():
         self.private_key_file = private_key
         self.sftp = None
 
+        #
+        # Open SFTP connection
+        #
         try:
+            
+            #
+            # open transport connection
+            #
             self.transport = paramiko.Transport((host, port))
 
+            #
+            # authentication by private key
+            #
             if ( self.private_key_file != None ):
                 self.private_key = paramiko.RSAKey.from_private_key_file(self.private_key_file)
                 self.transport.connect(username=self.username, pkey=self.private_key)
+            
+            #
+            # authentication by login/password
+            #
             elif ( self.password != None ):
                 self.transport.connect(username=self.username, password=self.password)
             else:
                 raise AuthenticationException(self.username, self.private_key_file) 
                 
             self.sftp = paramiko.SFTPClient.from_transport(self.transport)
+            
         except paramiko.ssh_exception.AuthenticationException as error:
             raise AuthenticationException(self.username, self.private_key_file) from error
 
+    #
+    # chdir
+    #
+    def chdir(self, dir):
+        if self.sftp == None:
+            return(None)
+        
+        return(self.sftp.chdir(dir))        
+            
+    #
+    # list files
+    #
     def list(self):
         if self.sftp == None:
             return(None)
         
         return(self.sftp.listdir())
     
-    def is_dir(self, file_name):
-        st = self.sftp.lstat(file_name)
+    #
+    # test if the remote file is a directory
+    #
+    def is_dir(self, path):
+        st = self.sftp.lstat(path)
         if stat.S_ISDIR(st.st_mode):
             return(True)
         else:
             return(False)
     
-    def get_size(self, file_name):
-        st = self.sftp.lstat(file_name)
+    #
+    # get the remote file size
+    #
+    def get_size(self, path):
+        if self.is_dir(path):
+            return(0)
+    
+        st = self.sftp.lstat(path)
         return(st.st_size)
 
+    #
+    # download a file
+    #
     def get(self, remotepath, localpath=None):
         if localpath == None:
             localpath = remotepath
 
-        try:
-            self.sftp.get(remotepath, localpath)           
-        except FileNotFoundError:
-            raise(FileNotFoundException(remotepath))
+        self.sftp.get(remotepath, localpath)           
+ 
+    #
+    # upload a file
+    #
+    def put(self, localpath, remotepath=None):
+        if remotepath == None:
+            remotepath = localpath
 
+        self.sftp.put(localpath, remotepath)           
+                        
+    #
+    # remove remote path
+    #
+    def remove(self, path):
+        if not self.is_dir(path):
+            self.sftp.remove(path)
+            
+    #
+    # close the connection
+    #
     def close(self):   
         if self.transport.is_active():
             self.sftp.close()

@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------
 # hermes: sample1.hermes
 #
-# hermes sample config file
+# hermes sample SFTP whith public key authentication config file
 #
 # Copyright (C) 2016, Christophe Fauchard
 #-----------------------------------------------------------------
@@ -17,13 +17,15 @@ deleteflag = no
 activation = yes
 command = get
 
-excluderegex = \.tmp$
-#excluderegex = ^\.
+#excluderegex = \.tmp$
+excluderegex = ^\.
 
-localdir = "./tmp/upload/sample1"
-statuslogdir = "./tmp/journal/sample1"
+#includeregex = .*logout.*
 
-remotedir = "./tmp"
+localdir = C:\Users\christophe.fauchard\Projets\hermes\tmp\upload files
+statuslogdir = ./tmp/journal/sample1
+
+remotedir = ./pub
 
 [sftp]
 

@@ -9,6 +9,7 @@
 
 name = Sample_SFTP_1
 user = chris
+private_key = C:/USBKEY/LiberKey/MyApps/KittyPortable/itnovem_openssh.ppk
 
 host = xjsd.itnovem.fr
 protocol = sftp
@@ -27,6 +28,3 @@ statuslogdir = C:\Users\christophe.fauchard\Projets\hermes\tmp\journal
 
 remotedir = ./pub
 
-[sftp]
-
-private_key = C:/USBKEY/LiberKey/MyApps/KittyPortable/itnovem_openssh.ppk

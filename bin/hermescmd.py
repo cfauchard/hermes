@@ -28,6 +28,10 @@ include_regex = None
 #
 def sftp_get_file(connection, file):
     statuslogdir = None
+
+    #
+    # creating statuslog dir if it does not exist
+    #
     date = zeus.date.Date()
     if (parser.get('hermes', 'statuslogdir')):
         statuslogdir = parser.get('hermes', 'statuslogdir')
@@ -35,14 +39,17 @@ def sftp_get_file(connection, file):
 
     try:
         print("download", file, ": size", connection.get_size(file))
-        connection.get(file)
+        connection.get(file, os.path.join(parser.get('hermes','localdir'), file))
     except:
         status = -1
     else:
         status = 0
 
     if statuslogdir:
-        print("writing in statuslogdir", statuslogdir_path.path, status)
+        print("writing in statuslogdir", os.path.join(statuslogdir_path.path, file), status)
+        f = open(os.path.join(statuslogdir_path.path, file), 'w')
+        f.write("%s;%d;" % (os.path.join(parser.get('hermes','localdir'), file), status))
+        f.close()
 
 #
 # get command for sftp connection
@@ -113,21 +120,41 @@ def sftp_put(connection):
 #
 def sftp():
     print("sftp protocol")
+
     print("sftp connexion to",
-          parser.get('hermes', 'user') + "@" + parser.get('hermes', 'host'),
-          "with private key",
-          parser.get('sftp', 'private_key'),
+          parser.get('hermes', 'user') + "@" + parser.get('hermes', 'host'))
+
+    if (parser.has_option('hermes', 'private_key')):
+        print("private key authentication",
+          parser.get('hermes', 'private_key'),
           "..."
           )
 
-    #
-    # create an hermes.SFTPConnection object
-    #
-    connection = hermes.sftp.SFTPConnection(
-        parser.get('hermes', 'host'),
-        parser.get('hermes', 'user'),
-        private_key=parser.get('sftp', 'private_key'))
-    print("sftp connexion opened...OK")
+        #
+        # create an hermes.SFTPConnection object with private key
+        #
+        connection = hermes.sftp.SFTPConnection(
+            parser.get('hermes', 'host'),
+            parser.get('hermes', 'user'),
+            private_key = parser.get('hermes', 'private_key'))
+        print("sftp connexion opened...OK")
+
+    elif (parser.has_option('hermes', 'cryptedpassword')):
+        print("password authentication")
+        crypted_password = parser.get('hermes', 'cryptedpassword')
+        print("crypted password:", crypted_password)
+        cipher = zeus.crypto.Vigenere("../sample/hermes.zpk")
+        cipher.decrypt(crypted_password)
+        password = cipher.get_decrypted_datas().decode("utf8")
+
+        #
+        # create an hermes.SFTPConnection object with password
+        #
+        connection = hermes.sftp.SFTPConnection(
+            parser.get('hermes', 'host'),
+            parser.get('hermes', 'user'),
+            password = password)
+        print("sftp connexion opened...OK")
 
     #
     # regex compilation
@@ -146,8 +173,8 @@ def sftp():
     # change local directory
     #
     if parser.has_option('hermes', 'remotedir'):
-        print("local chdir to", parser.get('hermes', 'localdir'))
-        os.chdir(parser.get('hermes', 'localdir'))
+        print("local dir creation", parser.get('hermes', 'localdir'))
+        zeus.file.Path(parser.get('hermes', 'localdir'))
 
     #
     # change remote directory

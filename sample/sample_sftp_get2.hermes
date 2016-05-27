@@ -9,7 +9,7 @@
 
 name = Sample_SFTP_2
 user = chris
-cryptedpassword = uII1DIE=
+cryptedpassword = QFIIJZI=
 
 host = 192.168.1.29
 protocol = sftp
@@ -21,7 +21,7 @@ command = get
 excluderegex = \.tmp$
 #excluderegex = ^\.
 
-localdir = "./tmp/upload/sample1"
-statuslogdir = "./tmp/journal/sample1"
+localdir = tmp/upload/sample1
+statuslogdir = tmp/journal/sample1
 
-remotedir = "./tmp"
+remotedir = tmp

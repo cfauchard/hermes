@@ -14,15 +14,6 @@ __author__ = "Christophe Fauchard <christophe.fauchard@gmail.com>"
 if sys.version_info < (3, 5):
     raise RuntimeError('You need Python 3.5+ for this module.')
 
-from hermes.sftp import SFTPConnection
-from hermes.ftp import FTPConnection
-from hermes.exception import \
-    ConnectionException, \
-    AuthenticationException, \
-    FileNotFoundException
-
-__all__ = [ 'SFTPConnection',
-            'FTPConnection',
-            'ConnectionException',
-            'AuthenticationException',
-            'FileNotFoundException' ]
+import hermes.ftp
+import hermes.sftp
+import hermes.exception

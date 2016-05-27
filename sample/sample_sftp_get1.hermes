@@ -23,7 +23,7 @@ excluderegex = ^\.
 #includeregex = .*logout.*
 
 localdir = C:\Users\christophe.fauchard\Projets\hermes\tmp\upload files
-statuslogdir = ./tmp/journal/sample1
+statuslogdir = C:\Users\christophe.fauchard\Projets\hermes\tmp\journal
 
 remotedir = ./pub
 

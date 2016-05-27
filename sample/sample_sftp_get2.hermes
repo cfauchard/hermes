@@ -23,5 +23,6 @@ excluderegex = \.tmp$
 
 localdir = tmp/upload/sample1
 statuslogdir = tmp/journal/sample1
+backupdir = tmp/backup/sample1
 
 remotedir = tmp

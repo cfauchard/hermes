@@ -13,6 +13,7 @@ import zeus
 import argparse
 import re
 import os
+import shutil
 
 #
 # global vars declaration
@@ -28,6 +29,7 @@ include_regex = None
 #
 def sftp_get_file(connection, file):
     statuslogdir = None
+    backupdir = None
 
     #
     # creating statuslog dir if it does not exist
@@ -37,6 +39,10 @@ def sftp_get_file(connection, file):
         statuslogdir = parser.get('hermes', 'statuslogdir')
         statuslogdir_path = zeus.file.Path(date.path_date_tree(statuslogdir))
 
+    if (parser.get('hermes', 'backupdir')):
+        backupdir = parser.get('hermes', 'backupdir')
+        backupdir_path = zeus.file.Path(date.path_date_tree(backupdir))
+
     try:
         print("download", file, ": size", connection.get_size(file))
         connection.get(file, os.path.join(parser.get('hermes','localdir'), file))
@@ -45,6 +51,16 @@ def sftp_get_file(connection, file):
     else:
         status = 0
 
+        #
+        # Backup downloaded file
+        #
+        print("backup file to", os.path.join(backupdir_path.path, file))
+        shutil.copyfile(os.path.join(parser.get('hermes','localdir'), file),
+                        os.path.join(backupdir_path.path, file))
+
+    #
+    # writing statuslog file
+    #
     if statuslogdir:
         print("writing in statuslogdir", os.path.join(statuslogdir_path.path, file), status)
         f = open(os.path.join(statuslogdir_path.path, file), 'w')

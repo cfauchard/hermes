@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------
-# hermes: sample_sftp_get2.hermes
+# hermes: sample_sftp_put2.hermes
 #
 # hermes sample config file
 #
@@ -7,7 +7,7 @@
 #-----------------------------------------------------------------
 [hermes]
 
-name = sample_sftp_get2
+name = sample_sftp_put2
 user = chris
 cryptedpassword = QFIIJZI=
 
@@ -16,13 +16,13 @@ protocol = sftp
 
 deleteflag = no
 activation = yes
-command = get
+command = put
 
 excluderegex = \.tmp$
 #excluderegex = ^\.
 
 localdir = tmp/upload/sample_sftp_get2
-statuslogdir = tmp/journal/sample_sftp_get2
-backupdir = tmp/backup/sample_sftp_get2
+statuslogdir = tmp/journal/sample_sftp_put2
+backupdir = tmp/backup/sample_sftp_put2
 
 remotedir = tmp

@@ -12,7 +12,7 @@ setup(name='hermes',
       packages = ['hermes'],
       scripts = ['bin/hermescmd.py'],
       install_requires=[
-            'zeus',
+            'zeus >= 3.0.0.b3',
             'paramiko'
       ],
       zip_safe = False)

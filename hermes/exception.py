@@ -24,4 +24,13 @@ class FileNotFoundException(Exception):
 
     def __init__(self, filename):
         self.filename = filename
-        
+
+class ActivationException(Exception):
+
+    def __init__(self):
+        pass
+
+class ProtocolUnsupportedException(Exception):
+
+    def __init__(self, protocol):
+        self.protocol = protocol

@@ -8,7 +8,7 @@
 
 import ftplib
 from ftplib import FTP
-from hermes.exception import ConnectionException, AuthenticationException
+
 
 class FTPConnection(FTP):
     """

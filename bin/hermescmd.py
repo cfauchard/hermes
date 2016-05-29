@@ -14,6 +14,7 @@ import argparse
 import re
 import os
 import shutil
+import configparser
 
 #
 # global vars declaration
@@ -188,43 +189,6 @@ def sftp_put(connection):
 # SFTP protocol
 #
 def sftp():
-    print("sftp protocol")
-
-    print("sftp connexion to",
-          parser.get('hermes', 'user') + "@" + parser.get('hermes', 'host'))
-
-    #
-    # create an hermes.SFTPConnection object with private key
-    #
-    if (parser.has_option('hermes', 'private_key')):
-        print("private key authentication",
-          parser.get('hermes', 'private_key'),
-          "..."
-          )
-
-        connection = hermes.sftp.SFTPConnection(
-            parser.get('hermes', 'host'),
-            parser.get('hermes', 'user'),
-            private_key = parser.get('hermes', 'private_key'))
-        print("sftp connexion opened...OK")
-
-
-    #
-    # create an hermes.SFTPConnection object with login/password
-    #
-    elif (parser.has_option('hermes', 'cryptedpassword')):
-        print("password authentication")
-        crypted_password = parser.get('hermes', 'cryptedpassword')
-        print("crypted password:", crypted_password)
-        cipher = zeus.crypto.Vigenere()
-        cipher.decrypt(crypted_password)
-        password = cipher.get_decrypted_datas_utf8()
-
-        connection = hermes.sftp.SFTPConnection(
-            parser.get('hermes', 'host'),
-            parser.get('hermes', 'user'),
-            password = password)
-        print("sftp connexion opened...OK")
 
     #
     # regex compilation
@@ -238,20 +202,6 @@ def sftp():
         include_regex = re.compile(parser.get('hermes', 'includeregex'))
     else:
         include_regex = None
-
-    #
-    # change local directory
-    #
-    if parser.has_option('hermes', 'remotedir'):
-        print("local dir creation", parser.get('hermes', 'localdir'))
-        zeus.file.Path(parser.get('hermes', 'localdir'))
-
-    #
-    # change to remote directory
-    #
-    if parser.has_option('hermes', 'remotedir'):
-        print("remote chdir to", parser.get('hermes', 'remotedir'))
-        connection.chdir(parser.get('hermes', 'remotedir'))
 
     #
     # download files
@@ -269,26 +219,6 @@ def sftp():
     print("closing sftp connexion...")
     connection.close()
     print("sftp connexion closed...OK")
-
-def create_status_backup():
-
-    global statuslogdir, backupdir, statuslogdir_path, backupdir_path
-
-    #
-    # create statuslog dir if it does not exist
-    #
-    date = zeus.date.Date()
-    if (parser.get('hermes', 'statuslogdir')):
-        statuslogdir = parser.get('hermes', 'statuslogdir')
-        statuslogdir_path = zeus.file.Path(date.path_date_tree(statuslogdir))
-
-    #
-    # create backupdir if it does not exists
-    #
-    if (parser.get('hermes', 'backupdir')):
-        backupdir = parser.get('hermes', 'backupdir')
-        backupdir_path = zeus.file.Path(date.path_date_tree(backupdir))
-
 
 #
 # command line parsing
@@ -316,30 +246,31 @@ try:
         print("zeus key:", args.zkey)
 
     #
-    # parse the hermes configuration file
+    # create an hermes connection object
     #
-    parser = zeus.parser.ConfigParser(args.file)
+    connection = hermes.connection.Connection(args.file)
 
-    #
-    # exit if activation = no
-    #
-    if parser.get('hermes', 'activation') != 'yes':
-        exit("transfer not activated, aborted")
-
-    #
-    # SFTP connection
-    #
-    if parser.get('hermes', 'protocol') == "sftp":
-        sftp()
-    else:
-        print("protocol unsupported", parser.get('hermes', 'protocol'))
-
+    print("connection to %s://%s@%s" % (connection.protocol, connection.user, connection.host))
+    print("private key", connection.private_key)
+    print("password", connection.crypted_password)
+    print("connecting...", end = '')
+    connection.connect()
+    print("ok")
+    print("closing connection...", end = '')
+    connection.close()
+    print("ok")
 #
 # exceptions tracking
 #
 except hermes.exception.AuthenticationException as error:
-    print("ERROR: Authentication private key", username, private_key)
-except zeus.exception.InvalidConfigurationFileException:
-    print("ERROR: invalid configuration file: " + args.file)
+    print("ERROR: private key authentication", error.username, error.private_key)
+except zeus.exception.InvalidConfigurationFileException as error:
+    print("ERROR: invalid configuration file", error.filename)
 except zeus.exception.PrivateKeyException:
     print("ERROR: ZPK variable for zeus key not set")
+except hermes.exception.ActivationException:
+    print("ERROR: activation set to no")
+except hermes.exception.ProtocolUnsupportedException as error:
+    print("ERROR: protocol unsupported", error.protocol)
+except configparser.NoOptionError as error:
+    print("missing key", error.option, "in section", error.section)

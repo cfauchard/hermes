@@ -156,69 +156,31 @@ def sftp_put(connection):
     print("command: put")
 
     #
-    # List files in local directory
+    # exclude directories
     #
-    for file in os.listdir(parser.get('hermes','localdir')):
-
-        #
-        # exclude directories
-        #
-        if os.path.isdir(file):
-            print("WARNING: ", file, "directory excluded")
+    if os.path.isdir(file):
+        print("WARNING: ", file, "directory excluded")
 
         #
         # test exclude regex
         #
-        elif exclude_regex and exclude_regex.match(file):
-            print("WARNING: ", file, "excluded by excluderegex")
+    elif exclude_regex and exclude_regex.match(file):
+        print("WARNING: ", file, "excluded by excluderegex")
 
         #
         # test include regex
         #
-        elif include_regex and not include_regex.match(file):
-            print("WARNING: ", file, "excluded by includeregex")
+    elif include_regex and not include_regex.match(file):
+        print("WARNING: ", file, "excluded by includeregex")
 
         #
         # upload the file
         #
-        else:
-            sftp_put_file(connection, os.path.join(parser.get('hermes','localdir'), file))
-
-
-#
-# SFTP protocol
-#
-def sftp():
-
-    #
-    # regex compilation
-    #
-    if parser.has_option('hermes', 'excluderegex'):
-        exclude_regex = re.compile(parser.get('hermes', 'excluderegex'))
     else:
-        exclude_regex = None
+        sftp_put_file(connection, os.path.join(parser.get('hermes', 'localdir'), file))
 
-    if parser.has_option('hermes', 'includeregex'):
-        include_regex = re.compile(parser.get('hermes', 'includeregex'))
-    else:
-        include_regex = None
-
-    #
-    # download files
-    #
-    if parser.get('hermes', 'command') == 'get':
-        sftp_get(connection)
-    elif parser.get('hermes', 'command') == 'put':
-        sftp_put(connection)
-    else:
-        print("ERROR: no supported command")
-
-    #
-    # closing connection
-    #
-    print("closing sftp connexion...")
-    connection.close()
-    print("sftp connexion closed...OK")
+def callback(file, size):
+    print(file, size, "bytes")
 
 #
 # command line parsing
@@ -256,6 +218,9 @@ try:
     print("connecting...", end = '')
     connection.connect()
     print("ok")
+    print("command", connection.command)
+    connection.start(callback = callback)
+    print("total:", connection.bytes_send, "bytes send,", connection.bytes_received, "bytes received")
     print("closing connection...", end = '')
     connection.close()
     print("ok")
@@ -273,4 +238,6 @@ except hermes.exception.ActivationException:
 except hermes.exception.ProtocolUnsupportedException as error:
     print("ERROR: protocol unsupported", error.protocol)
 except configparser.NoOptionError as error:
-    print("missing key", error.option, "in section", error.section)
+    print("ERROR missing key", error.option, "in section", error.section)
+except hermes.exception.CommandUnsupportedException as error:
+    print("ERROR unsupported command", error.command)

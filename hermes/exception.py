@@ -34,3 +34,8 @@ class ProtocolUnsupportedException(Exception):
 
     def __init__(self, protocol):
         self.protocol = protocol
+
+class CommandUnsupportedException(Exception):
+
+    def __init__(self, command):
+        self.command = command

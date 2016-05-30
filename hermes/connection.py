@@ -10,6 +10,8 @@
 
 import zeus
 import hermes
+import re
+import os
 
 class Connection:
 
@@ -27,6 +29,10 @@ class Connection:
             print(self.parser.get('hermes', 'activation'))
             raise hermes.exception.ActivationException()
 
+        self.commands = { 'get': self.get, 'put': self.put }
+        self.bytes_send = 0
+        self.bytes_received = 0
+
         #
         # create working directories
         #
@@ -41,6 +47,7 @@ class Connection:
         self.localdir = self.parser.get('hermes', 'localdir')
         zeus.file.Path(self.localdir)
         self.remotedir = self.parser.get('hermes', 'remotedir')
+        self.command = self.parser.get('hermes', 'command')
         if self.parser.get('hermes', 'protocol') == "sftp":
             self.protocol = "sftp"
         else:
@@ -59,6 +66,19 @@ class Connection:
             self.cipher.decrypt(self.crypted_password)
             self.password = self.cipher.get_decrypted_datas_utf8()
             self.private_key = None
+
+        #
+        # regex compilation
+        #
+        if self.parser.has_option('hermes', 'excluderegex'):
+            self.exclude_regex = re.compile(self.parser.get('hermes', 'excluderegex'))
+        else:
+            self.exclude_regex = None
+
+        if self.parser.has_option('hermes', 'includeregex'):
+            self.include_regex = re.compile(self.parser.get('hermes', 'includeregex'))
+        else:
+            self.include_regex = None
 
     def connect(self):
 
@@ -112,3 +132,23 @@ class Connection:
         if (self.parser.get('hermes', 'backupdir')):
             self.backupdir = self.parser.get('hermes', 'backupdir')
             self.backupdir_path = zeus.file.Path(date.path_date_tree(self.backupdir))
+
+    def get(self, callback = None):
+        print("exec get")
+
+    def put(self, callback = None):
+
+        #
+        # List files in local directory
+        #
+        for file in os.listdir(self.localdir):
+            callback(os.path.join(self.localdir, file),
+                     os.path.getsize(os.path.join(self.localdir, file)))
+
+            self.bytes_send += os.path.getsize(os.path.join(self.localdir, file))
+
+    def start(self, callback = None):
+        try:
+            self.commands[self.command](callback)
+        except KeyError:
+            raise hermes.exception.CommandUnsupportedException(self.command)

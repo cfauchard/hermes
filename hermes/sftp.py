@@ -8,8 +8,8 @@
 # Copyright (C) 2016, Christophe Fauchard
 #-----------------------------------------------------------------
 
-import sys
 import stat
+import hermes
     
 import paramiko, sys
 from hermes.exception import AuthenticationException
@@ -81,11 +81,11 @@ class SFTPConnection():
     # chdir
     #
     def chdir(self, dir):
-        if self.sftp == None:
-            return(None)
-        
-        return(self.sftp.chdir(dir))        
-            
+        try:
+            if not self.sftp == None:
+                self.sftp.chdir(dir)
+        except:
+            raise hermes.exception.ChdirException(dir)
     #
     # list files
     #

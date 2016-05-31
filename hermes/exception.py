@@ -39,3 +39,8 @@ class CommandUnsupportedException(Exception):
 
     def __init__(self, command):
         self.command = command
+
+class ChdirException(Exception):
+
+    def __init__(self, dir):
+        self.dir = dir

@@ -150,39 +150,6 @@ def sftp_put_file(connection, file):
         f.close()
 
 #
-# put command for sftp connection
-#
-def sftp_put(connection):
-    print("command: put")
-
-    #
-    # exclude directories
-    #
-    if os.path.isdir(file):
-        print("WARNING: ", file, "directory excluded")
-
-        #
-        # test exclude regex
-        #
-    elif exclude_regex and exclude_regex.match(file):
-        print("WARNING: ", file, "excluded by excluderegex")
-
-        #
-        # test include regex
-        #
-    elif include_regex and not include_regex.match(file):
-        print("WARNING: ", file, "excluded by includeregex")
-
-        #
-        # upload the file
-        #
-    else:
-        sftp_put_file(connection, os.path.join(parser.get('hermes', 'localdir'), file))
-
-def callback(file, size):
-    print(file, size, "bytes")
-
-#
 # command line parsing
 #
 args_parser = argparse.ArgumentParser()
@@ -215,20 +182,21 @@ try:
     print("connection to %s://%s@%s" % (connection.protocol, connection.user, connection.host))
     print("private key", connection.private_key)
     print("password", connection.crypted_password)
-    print("connecting...", end = '')
+    print("connecting...", end='')
     connection.connect()
     print("ok")
     print("command", connection.command)
-    connection.start(callback = callback)
+    connection.start()
     print("total:", connection.bytes_send, "bytes send,", connection.bytes_received, "bytes received")
-    print("closing connection...", end = '')
+    print("closing connection...", end='')
     connection.close()
     print("ok")
 #
 # exceptions tracking
 #
 except hermes.exception.AuthenticationException as error:
-    print("ERROR: private key authentication", error.username, error.private_key)
+    print("ERROR: authentication exception", error.username, error.private_key)
+    connection.last_connection(-1, "authentication exception")
 except zeus.exception.InvalidConfigurationFileException as error:
     print("ERROR: invalid configuration file", error.filename)
 except zeus.exception.PrivateKeyException:
@@ -241,3 +209,5 @@ except configparser.NoOptionError as error:
     print("ERROR missing key", error.option, "in section", error.section)
 except hermes.exception.CommandUnsupportedException as error:
     print("ERROR unsupported command", error.command)
+except hermes.exception.ChdirException as error:
+    print("ERROR change directory", error.dir)

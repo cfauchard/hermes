@@ -14,7 +14,7 @@ import re
 import os
 
 def default_callback(file, size, status='transfered'):
-    print(file, size, "bytes", ":", status)
+    print(zeus.date.Date().date_time_iso(), file, size, "bytes", ":", status)
 
 class Connection:
 

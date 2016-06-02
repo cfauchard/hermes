@@ -1,4 +1,6 @@
 from setuptools import setup
+import os
+import glob
 
 exec(compile(open('hermes/_version.py').read(), 'hermes/_version.py', 'exec'))
 
@@ -11,7 +13,15 @@ setup(name='hermes',
       license='GPLV3',
       packages=['hermes'],
       scripts=['bin/hermescmd.py'],
-      data_files=[('sample/hermes', ['sample/*.hermes'])],
+      data_files=[
+            (
+                  'sample/hermes', [
+                        f for f in glob.glob(
+                              os.path.join('sample', '*.hermes')
+                        )
+                  ]
+            )
+      ],
       install_requires=[
             'zeus >= 3.0.0.b3',
             'paramiko'

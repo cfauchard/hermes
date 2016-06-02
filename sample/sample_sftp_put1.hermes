@@ -14,7 +14,7 @@ protocol = sftp
 user = chris
 private_key = C:/USBKEY/LiberKey/MyApps/KittyPortable/itnovem_openssh.ppk
 
-deleteflag = no
+deleteflag = yes
 activation = yes
 command = put
 

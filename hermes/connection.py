@@ -13,7 +13,7 @@ import hermes
 import re
 import os
 
-def default_callback(file, size, status='transfered'):
+def default_callback(file, size, status):
     print(zeus.date.Date().date_time_iso(), file, size, "bytes", ":", status)
 
 class Connection:
@@ -32,10 +32,15 @@ class Connection:
             print(self.parser.get('hermes', 'activation'))
             raise hermes.exception.ActivationException()
 
+        #
+        # intern variables initialization
+        #
         self.commands = {'get': self.get, 'put': self.put}
         self.bytes_send = 0
         self.bytes_received = 0
         self.status = None
+        self.last_transfer = None
+        self.last_transfer_size = 0
 
         #
         # create working directories
@@ -52,6 +57,7 @@ class Connection:
         zeus.file.Path(self.localdir)
         self.remotedir = self.parser.get('hermes', 'remotedir')
         self.command = self.parser.get('hermes', 'command')
+        self.deleteflag = self.parser.get('hermes', 'deleteflag')
         if self.parser.get('hermes', 'protocol') == "sftp":
             self.protocol = "sftp"
         else:
@@ -149,8 +155,61 @@ class Connection:
         else:
             self.backupdir = None
 
-    def get(self, callback = None):
-        print("exec get")
+    def get_file(self, file):
+
+        self.last_transfer = file
+        try:
+            self.protocol_connection.get(file, os.path.join(self.localdir, file))
+            self.status = "downloaded"
+            self.last_transfer_size = os.path.getsize(os.path.join(self.localdir, file))
+            self.bytes_send += self.last_transfer_size
+
+            #
+            # delete the local file
+            #
+            if self.deleteflag == "yes":
+                self.protocol_connection.remove(file)
+                self.status = "downloaded and remote deleted"
+
+        except PermissionError as error:
+            self.status = "permission denied"
+        except:
+            self.status = "unknown error"
+
+    def get(self, callback):
+        for file in self.protocol_connection.list():
+
+            #
+            # exclude directories
+            #
+            if self.protocol_connection.is_dir(file):
+                self.status = "excluded (directory)"
+
+            #
+            # test exclude regex
+            #
+            elif self.exclude_regex and self.exclude_regex.search(file):
+                self.status = "excluded by excluderegex"
+
+            #
+            # test include regex
+            #
+            elif self.include_regex and not self.include_regex.search(file):
+                self.status = "excluded by includeregex"
+
+            #
+            # download the file
+            #
+            else:
+                self.get_file(file)
+
+            #
+            # callback function
+            #
+            if not callback == None:
+                callback(file,
+                         self.last_transfer_size,
+                         self.status)
 
     def put(self, callback):
 
@@ -163,47 +222,53 @@ class Connection:
             # exclude directories
             #
             if os.path.isdir(os.path.join(self.localdir, file)):
-                status = "excluded (directory)"
+                self.status = "excluded (directory)"
 
             #
             # test exclude regex
             #
-            elif self.exclude_regex and self.exclude_regex.match(file):
-                status = "excluded by excluderegex"
+            elif self.exclude_regex and self.exclude_regex.search(file):
+                self.status = "excluded by excluderegex"
 
             #
             # test include regex
             #
-            elif self.include_regex and not self.include_regex.match(file):
-                status = "excluded by includeregex"
+            elif self.include_regex and not self.include_regex.search(file):
+                self.status = "excluded by includeregex"
 
             #
             # upload the file
             #
             else:
                 self.put_file(os.path.join(self.localdir, file))
-                self.bytes_send += os.path.getsize(os.path.join(self.localdir, file))
 
             #
             # callback function
             #
             if not callback == None:
-                callback(os.path.join(self.localdir, file),
-                         os.path.getsize(os.path.join(self.localdir, file)),
-                         status=self.status)
+                callback(file,
+                         self.last_transfer_size,
+                         self.status)
 
     def put_file(self, file):
         self.last_transfer = file
         try:
             self.protocol_connection.put(file, os.path.basename(file))
+            self.status = "uploaded"
+            self.last_transfer_size = os.path.getsize(os.path.join(self.localdir, file))
+            self.bytes_send += self.last_transfer_size
+
+            #
+            # delete the local file
+            #
+            if self.deleteflag == "yes":
+                os.remove(file)
+                self.status = "uploaded and local deleted"
 
         except PermissionError as error:
             self.status = "permission denied"
         except:
-            self.status = "error"
-        else:
-            self.status = "transfered"
-
+            self.status = "unknown error"
 
     def start(self, callback=default_callback):
         try:

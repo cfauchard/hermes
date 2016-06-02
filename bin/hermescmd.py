@@ -212,3 +212,5 @@ except hermes.exception.CommandUnsupportedException as error:
     print("ERROR unsupported command", error.command)
 except hermes.exception.ChdirException as error:
     print("ERROR change directory", error.dir)
+except zeus.exception.FileNotFoundException as error:
+    print("ERROR file not found", error.filename)

@@ -1,30 +1,28 @@
 #-----------------------------------------------------------------
 # hermes: sample1.hermes
 #
-# hermes sample SFTP whith public key authentication config file
+# hermes sample SFTP with public key authentication config file
 #
 # Copyright (C) 2016, Christophe Fauchard
 #-----------------------------------------------------------------
 [hermes]
 
-name = Sample_SFTP_1
-user = chris
-private_key = C:/USBKEY/LiberKey/MyApps/KittyPortable/itnovem_openssh.ppk
+name = sample_sftp_get1
 
 host = xjsd.itnovem.fr
 protocol = sftp
+user = chris
+private_key = C:/USBKEY/LiberKey/MyApps/KittyPortable/itnovem_openssh.ppk
 
-deleteflag = no
+deleteflag = yes
 activation = yes
 command = get
 
-#excluderegex = \.tmp$
-excluderegex = ^\.
+excluderegex = \.tmp$
 
-#includeregex = .*logout.*
+includeregex = .*file.*
 
 localdir = C:\Users\christophe.fauchard\Projets\hermes\tmp\upload files
-statuslogdir = C:\Users\christophe.fauchard\Projets\hermes\tmp\journal
+statuslogdir = ./tmp/journal/sample_sftp_get1
 
-remotedir = ./pub
-
+remotedir = ./upload

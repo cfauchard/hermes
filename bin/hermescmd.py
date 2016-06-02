@@ -153,6 +153,7 @@ def sftp_put_file(connection, file):
 # command line parsing
 #
 args_parser = argparse.ArgumentParser()
+args_parser.add_argument("--version", action='version', version='%(prog)s ' + hermes.__version__)
 args_parser.add_argument("file", help="hermes config file")
 args_parser.add_argument("--zkey", help="zeus secret key")
 args = args_parser.parse_args()

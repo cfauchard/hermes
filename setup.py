@@ -11,7 +11,7 @@ setup(name='hermes',
       license='GPLV3',
       packages=['hermes'],
       scripts=['bin/hermescmd.py'],
-      data_files=[('samples', ['sample/*'])],
+      data_files=[('sample/hermes', ['sample/*.hermes'])],
       install_requires=[
             'zeus >= 3.0.0.b3',
             'paramiko'

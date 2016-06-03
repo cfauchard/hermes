@@ -12,6 +12,7 @@ import zeus
 import hermes
 import re
 import os
+import shutil
 
 def default_callback(file, size, status):
     print(zeus.date.Date().date_time_iso(), file, size, "bytes", ":", status)
@@ -155,14 +156,37 @@ class Connection:
         else:
             self.backupdir = None
 
+    #
+    # write statuslog file
+    #
+    def write_status(self, file):
+
+        if self.statuslogdir is not None:
+            date = zeus.date.Date()
+
+            print("writing in statuslogdir", os.path.join(self.statuslogdir_path.path, os.path.basename(file)), self.status)
+            f = open(os.path.join(self.statuslogdir_path.path, os.path.basename(file)) + ".idx", 'w')
+            f.write("%s;%d;%s;%d;%s" % (os.path.join(self.localdir, os.path.basename(file)), self.last_transfer_size, date.date_time_iso(), self.statuscode, self.status))
+            f.close()
+
+
+    def write_backup(self, file):
+        print("backup file to", os.path.join(self.backupdir_path.path, os.path.basename(file)))
+        shutil.copyfile(file,
+                        os.path.join(self.backupdir_path.path, os.path.basename(file)))
+
     def get_file(self, file):
 
         self.last_transfer = file
         try:
             self.protocol_connection.get(file, os.path.join(self.localdir, file))
-            self.status = "downloaded"
             self.last_transfer_size = os.path.getsize(os.path.join(self.localdir, file))
             self.bytes_send += self.last_transfer_size
+
+            #
+            # Backup uploaded file if transfer ok
+            #
+            self.write_backup(self, file)
 
             #
             # delete the local file
@@ -170,11 +194,19 @@ class Connection:
             if self.deleteflag == "yes":
                 self.protocol_connection.remove(file)
                 self.status = "downloaded and remote deleted"
+            else:
+                self.status = "downloaded"
+
+            self.statuscode = 0
 
         except PermissionError as error:
             self.status = "permission denied"
+            self.statuscode = -2
         except:
             self.status = "unknown error"
+            self.statuscode = -1
+
+        self.write_status(file)
 
     def get(self, callback):
         for file in self.protocol_connection.list():
@@ -254,9 +286,13 @@ class Connection:
         self.last_transfer = file
         try:
             self.protocol_connection.put(file, os.path.basename(file))
-            self.status = "uploaded"
-            self.last_transfer_size = os.path.getsize(os.path.join(self.localdir, file))
+            self.last_transfer_size = os.path.getsize(file)
             self.bytes_send += self.last_transfer_size
+
+            #
+            # Backup uploaded file if transfer ok
+            #
+            self.write_backup(file)
 
             #
             # delete the local file
@@ -264,11 +300,19 @@ class Connection:
             if self.deleteflag == "yes":
                 os.remove(file)
                 self.status = "uploaded and local deleted"
+            else:
+                self.status = "uploaded"
+
+            self.statuscode = 0
 
         except PermissionError as error:
             self.status = "permission denied"
+            self.statuscode = -2
         except:
             self.status = "unknown error"
+            self.statuscode = -1
+
+        self.write_status(file)
 
     def start(self, callback=default_callback):
         try:

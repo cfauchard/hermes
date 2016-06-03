@@ -15,6 +15,7 @@ import re
 import os
 import shutil
 import configparser
+import paramiko
 
 #
 # global vars declaration
@@ -60,15 +61,6 @@ def sftp_get_file(connection, file):
         shutil.copyfile(os.path.join(parser.get('hermes','localdir'), file),
                         os.path.join(backupdir_path.path, file))
 
-    #
-    # write statuslog file
-    #
-    if statuslogdir:
-        print("writing in statuslogdir", os.path.join(statuslogdir_path.path, file), status)
-        f = open(os.path.join(statuslogdir_path.path, file), 'w')
-        date.update()
-        f.write("%s;%s;%d;" % (date.date_time_iso(), os.path.join(parser.get('hermes','localdir'), file), status))
-        f.close()
 
 #
 # get command for sftp connection
@@ -214,3 +206,5 @@ except hermes.exception.ChdirException as error:
     print("ERROR change directory", error.dir)
 except zeus.exception.FileNotFoundException as error:
     print("ERROR file not found", error.filename)
+except paramiko.ssh_exception.SSHException as error:
+    print("ERROR sftp connexion", error.username)

@@ -11,135 +11,10 @@
 import hermes
 import zeus
 import argparse
-import re
 import os
-import shutil
 import configparser
 import paramiko
-
-#
-# global vars declaration
-#
-exclude_regex = None
-include_regex = None
-statuslogdir = None
-statuslogdir_path = None
-backupdir = None
-backupdir_path = None
-
-#
-# download function
-#
-# parameters:
-# - file_name: file name to download
-#
-def sftp_get_file(connection, file):
-
-    date = zeus.date.Date()
-
-    #
-    # create status and backup dir
-    #
-    create_status_backup()
-
-    #
-    # download file
-    #
-    try:
-        date.print()
-        print("download", file, ": size", connection.get_size(file))
-        connection.get(file, os.path.join(parser.get('hermes','localdir'), file))
-    except:
-        status = -1
-    else:
-        status = 0
-
-        #
-        # Backup downloaded file if transfer ok
-        #
-        print("backup file to", os.path.join(backupdir_path.path, file))
-        shutil.copyfile(os.path.join(parser.get('hermes','localdir'), file),
-                        os.path.join(backupdir_path.path, file))
-
-
-#
-# get command for sftp connection
-#
-def sftp_get(connection):
-
-    print("command: get")
-
-    #
-    # List files in remote directory
-    #
-    list_files = connection.list()
-    for file in list_files:
-
-        #
-        # test exclude regex
-        #
-        if exclude_regex and exclude_regex.match(file):
-            print("WARNING: ", file, "excluded by excluderegex")
-
-        #
-        # test if directory
-        #
-        elif connection.is_dir(file):
-            print("WARNING:", file, "directory excluded")
-
-        #
-        # test include regex
-        #
-        elif include_regex and not include_regex.match(file):
-            print("WARNING:", file, "excluded by includeregex")
-
-        #
-        # download the file
-        #
-        else :
-            sftp_get_file(connection, file)
-
-#
-# upload function
-#
-# parameters:
-# - file_name: file path to upload
-#
-def sftp_put_file(connection, file):
-
-    date = zeus.date.Date()
-
-    #
-    # create status and backup dir
-    #
-    create_status_backup()
-
-    try:
-        date.print()
-        print("upload", file, ": size", os.path.getsize(file), "bytes")
-        connection.put(file, os.path.basename(file))
-
-    except:
-        status = -1
-    else:
-        status = 0
-
-        #
-        # Backup uploaded file if transfer ok
-        #
-        print("backup file to", os.path.join(backupdir_path.path, os.path.basename(file)))
-        shutil.copyfile(file,
-                        os.path.join(backupdir_path.path, os.path.basename(file)))
-
-    #
-    # write statuslog file
-    #
-    if statuslogdir:
-        print("writing in statuslogdir", os.path.join(statuslogdir_path.path, os.path.basename(file)), status)
-        f = open(os.path.join(statuslogdir_path.path, os.path.basename(file)), 'w')
-        date.update()
-        f.write("%s;%s;%d;" % (date.date_time_iso(), file, status))
-        f.close()
+import logging
 
 #
 # command line parsing
@@ -171,21 +46,13 @@ try:
     # create an hermes connection object
     #
     connection = hermes.connection.Connection(args.file)
-
-    print("connection to %s://%s@%s" % (connection.protocol, connection.user, connection.host))
-    print("private key", connection.private_key)
-    print("password", connection.crypted_password)
-    print("connecting...", end='')
+    connection.log.set_level(logging.DEBUG)
     connection.connect()
-    print("ok")
-    print("command", connection.command)
     connection.start()
-    print("total:", connection.bytes_send, "bytes send,", connection.bytes_received, "bytes received")
-    print("closing connection...", end='')
     connection.close()
-    print("ok")
+
 #
-# exceptions tracking
+# exceptions handling
 #
 except hermes.exception.AuthenticationException as error:
     print("ERROR: authentication exception", error.username, error.private_key)

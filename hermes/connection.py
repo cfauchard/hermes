@@ -14,8 +14,12 @@ import re
 import os
 import shutil
 
-def default_callback(file, size, status):
-    print(zeus.date.Date().date_time_iso(), file, size, "bytes", ":", status)
+def default_callback(connection, file, size, status):
+    connection.log.logger.info("%s %s %d bytes : %s",
+                               zeus.date.Date().date_time_iso(),
+                               file,
+                               size,
+                               status)
 
 class Connection:
 
@@ -30,7 +34,7 @@ class Connection:
         # raise an ActivationException if activation = no
         #
         if not self.parser.get('hermes', 'activation') == 'yes':
-            print(self.parser.get('hermes', 'activation'))
+            self.logger.info("not activated")
             raise hermes.exception.ActivationException()
 
         #
@@ -46,8 +50,12 @@ class Connection:
         #
         # create working directories
         #
-        self.create_backup_dir()
-        self.create_status_dir()
+        if self.parser.has_option('hermes', 'backupdir'):
+            self.backupdir_base = self.parser.get('hermes', 'backupdir')
+            self.backupdir = zeus.file.DayArchivePath(self.backupdir_base)
+        if self.parser.has_option('hermes', 'statuslogdir'):
+            self.statuslogdir_base = self. parser.get('hermes', 'statuslogdir')
+            self.statuslogdir = zeus.file.DayArchivePath(self.statuslogdir_base)
 
         #
         # getting mandatory parameters
@@ -65,9 +73,9 @@ class Connection:
             raise hermes.exception.ProtocolUnsupportedException(self.parser.get('hermes', 'protocol'))
 
         #
-        # getting optional parameters
+        # authentication options
         #
-        if (self.parser.has_option('hermes', 'private_key')):
+        if self.parser.has_option('hermes', 'private_key'):
             self.private_key = self.parser.get('hermes', 'private_key')
             self.password = None
             self.crypted_password = None
@@ -77,6 +85,12 @@ class Connection:
             self.cipher.decrypt(self.crypted_password)
             self.password = self.cipher.get_decrypted_datas_utf8()
             self.private_key = None
+
+        #
+        # logfile
+        #
+        if self.parser.has_option('hermes', 'logfile'):
+            self.log = zeus.log.Log(self.parser.get('hermes', 'logfile'), frequence='d')
 
         #
         # regex compilation
@@ -91,8 +105,8 @@ class Connection:
         else:
             self.include_regex = None
 
-    def last_connection(self, status, libelle):
-        f = open(os.path.join(self.statuslogdir,"last_connection"), 'w')
+    def write_last_connection(self, status, libelle):
+        f = open(os.path.join(self.statuslogdir_base,"last_connection"), 'w')
         f.write("%s,%d,%s" % (zeus.date.Date().date_time_iso(), status, libelle))
         f.close()
 
@@ -129,32 +143,11 @@ class Connection:
         #
         # update last connection
         #
-        self.last_connection(0, "no error")
+        self.write_last_connection(0, "no error")
 
     def close(self):
         self.protocol_connection.close()
 
-    def create_status_dir(self):
-
-        #
-        # create statuslog dir if it does not exist
-        #
-        date = zeus.date.Date()
-        if (self.parser.get('hermes', 'statuslogdir')):
-            self.statuslogdir = self.parser.get('hermes', 'statuslogdir')
-            self.statuslogdir_path = zeus.file.Path(date.path_date_tree(self.statuslogdir))
-
-    def create_backup_dir(self):
-
-        #
-        # create backupdir if it does not exists
-        #
-        date = zeus.date.Date()
-        if self.parser.has_option('hermes', 'backupdir'):
-            self.backupdir = self.parser.get('hermes', 'backupdir')
-            self.backupdir_path = zeus.file.Path(date.path_date_tree(self.backupdir))
-        else:
-            self.backupdir = None
 
     #
     # write statuslog file
@@ -164,16 +157,22 @@ class Connection:
         if self.statuslogdir is not None:
             date = zeus.date.Date()
 
-            print("writing in statuslogdir", os.path.join(self.statuslogdir_path.path, os.path.basename(file)), self.status)
-            f = open(os.path.join(self.statuslogdir_path.path, os.path.basename(file)) + ".idx", 'w')
-            f.write("%s;%d;%s;%d;%s" % (os.path.join(self.localdir, os.path.basename(file)), self.last_transfer_size, date.date_time_iso(), self.statuscode, self.status))
+            self.log.logger.info("writing in statuslogdir %s %s",
+                                 os.path.join(self.statuslogdir.path, os.path.basename(file)),
+                                 self.status)
+            f = open(os.path.join(self.statuslogdir.path, os.path.basename(file)) + ".idx", 'w')
+            f.write("%s;%d;%s;%d;%s" % (os.path.join(self.localdir, os.path.basename(file)),
+                                        self.last_transfer_size,
+                                        date.date_time_iso(),
+                                        self.statuscode,
+                                        self.status))
             f.close()
 
-
     def write_backup(self, file):
-        print("backup file to", os.path.join(self.backupdir_path.path, os.path.basename(file)))
+        self.log.logger.info("backup file to %s",
+                         os.path.join(self.backupdir.path, os.path.basename(file)))
         shutil.copyfile(file,
-                        os.path.join(self.backupdir_path.path, os.path.basename(file)))
+                        os.path.join(self.backupdir.path, os.path.basename(file)))
 
     def get_file(self, file):
 
@@ -239,7 +238,8 @@ class Connection:
             # callback function
             #
             if not callback == None:
-                callback(file,
+                callback(self,
+                         file,
                          self.last_transfer_size,
                          self.status)
 
@@ -278,7 +278,8 @@ class Connection:
             # callback function
             #
             if not callback == None:
-                callback(file,
+                callback(self,
+                         file,
                          self.last_transfer_size,
                          self.status)
 

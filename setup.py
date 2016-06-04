@@ -23,7 +23,7 @@ setup(name='hermes',
             )
       ],
       install_requires=[
-            'zeus >= 3.0.0.b3',
+            'zeus >= 3.1.0.b1',
             'paramiko'
       ],
       zip_safe=False)

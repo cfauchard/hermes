@@ -62,7 +62,7 @@ except zeus.exception.InvalidConfigurationFileException as error:
 except zeus.exception.PrivateKeyException:
     print("ERROR: ZPK variable for zeus key not set")
 except hermes.exception.ActivationException:
-    print("ERROR: activation set to no")
+    print("WARNING: not activated")
 except hermes.exception.ProtocolUnsupportedException as error:
     print("ERROR: protocol unsupported", error.protocol)
 except configparser.NoOptionError as error:

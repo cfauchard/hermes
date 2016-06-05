@@ -15,8 +15,7 @@ import os
 import shutil
 
 def default_callback(connection, file, size, status):
-    connection.log.logger.info("%s %s %d bytes : %s",
-                               zeus.date.Date().date_time_iso(),
+    connection.log.logger.info("%s %d bytes : %s",
                                file,
                                size,
                                status)
@@ -26,15 +25,35 @@ class Connection:
     def __init__(self, hermes_config_file):
 
         #
-        # create an ini file parser
+        # create an ini file parser and read config file
         #
         self.parser = zeus.parser.ConfigParser(hermes_config_file)
+
+        #
+        # logfile
+        #
+        if self.parser.has_option('hermes', 'logfile'):
+
+            #
+            # create a daily switch log
+            #
+            self.log = zeus.log.Log(self.parser.get('hermes', 'logfile'), frequence='d')
+        else:
+
+            #
+            # create an stdout only logger
+            #
+            self.log = zeus.log.Log()
+
+        self.log.logger.info("initializing Hermes Connection whith %s", hermes_config_file)
+        self.log.logger.info("hermes %s", hermes.__version__)
+        self.log.logger.info("zeus %s", zeus.__version__)
 
         #
         # raise an ActivationException if activation = no
         #
         if not self.parser.get('hermes', 'activation') == 'yes':
-            self.logger.info("not activated")
+            self.log.logger.warning("not activated")
             raise hermes.exception.ActivationException()
 
         #
@@ -53,9 +72,11 @@ class Connection:
         if self.parser.has_option('hermes', 'backupdir'):
             self.backupdir_base = self.parser.get('hermes', 'backupdir')
             self.backupdir = zeus.file.DayArchivePath(self.backupdir_base)
+            self.log.logger.info("backupdir %s created", self.backupdir.path)
         if self.parser.has_option('hermes', 'statuslogdir'):
             self.statuslogdir_base = self. parser.get('hermes', 'statuslogdir')
             self.statuslogdir = zeus.file.DayArchivePath(self.statuslogdir_base)
+            self.log.logger.info("statuslogdir %s created", self.statuslogdir.path)
 
         #
         # getting mandatory parameters
@@ -73,24 +94,33 @@ class Connection:
             raise hermes.exception.ProtocolUnsupportedException(self.parser.get('hermes', 'protocol'))
 
         #
+        # display mandatory parameters
+        #
+        self.log.logger.info("host %s", self.host)
+        self.log.logger.info("user %s", self.user)
+        self.log.logger.info("localdir %s", self.localdir)
+        self.log.logger.info("remotedir %s", self.remotedir)
+        self.log.logger.info("command %s", self.command)
+        self.log.logger.info("deleteflag %s", self.deleteflag)
+        self.log.logger.info("protocol %s", self.protocol)
+
+        #
         # authentication options
         #
         if self.parser.has_option('hermes', 'private_key'):
             self.private_key = self.parser.get('hermes', 'private_key')
             self.password = None
             self.crypted_password = None
+            self.log.logger.info("private key authentication %s", self.private_key)
         elif (self.parser.has_option('hermes', 'cryptedpassword')):
             self.crypted_password = self.parser.get('hermes', 'cryptedpassword')
             self.cipher = zeus.crypto.Vigenere()
             self.cipher.decrypt(self.crypted_password)
             self.password = self.cipher.get_decrypted_datas_utf8()
             self.private_key = None
+            self.log.logger.info("password authentication %s", self.crypted_password)
+            self.log.logger.info("zeus encryption key %s", os.environ["ZPK"])
 
-        #
-        # logfile
-        #
-        if self.parser.has_option('hermes', 'logfile'):
-            self.log = zeus.log.Log(self.parser.get('hermes', 'logfile'), frequence='d')
 
         #
         # regex compilation
@@ -169,8 +199,9 @@ class Connection:
             f.close()
 
     def write_backup(self, file):
-        self.log.logger.info("backup file to %s",
-                         os.path.join(self.backupdir.path, os.path.basename(file)))
+        self.log.logger.info("backup file %s to %s",
+                                file,
+                                os.path.join(self.backupdir.path, os.path.basename(file)))
         shutil.copyfile(file,
                         os.path.join(self.backupdir.path, os.path.basename(file)))
 
@@ -180,12 +211,12 @@ class Connection:
         try:
             self.protocol_connection.get(file, os.path.join(self.localdir, file))
             self.last_transfer_size = os.path.getsize(os.path.join(self.localdir, file))
-            self.bytes_send += self.last_transfer_size
+            self.bytes_received += self.last_transfer_size
 
             #
             # Backup uploaded file if transfer ok
             #
-            self.write_backup(self, file)
+            self.write_backup(os.path.join(self.localdir, file))
 
             #
             # delete the local file
@@ -201,9 +232,9 @@ class Connection:
         except PermissionError as error:
             self.status = "permission denied"
             self.statuscode = -2
-        except:
-            self.status = "unknown error"
-            self.statuscode = -1
+        # except:
+        #     self.status = "unknown error"
+        #     self.statuscode = -1
 
         self.write_status(file)
 
@@ -242,6 +273,8 @@ class Connection:
                          file,
                          self.last_transfer_size,
                          self.status)
+
+        self.log.logger.info("total received: %d bytes", self.bytes_received)
 
     def put(self, callback):
 
@@ -282,6 +315,9 @@ class Connection:
                          file,
                          self.last_transfer_size,
                          self.status)
+
+        self.log.logger.info("total sent: %d bytes", self.bytes_send)
+
 
     def put_file(self, file):
         self.last_transfer = file

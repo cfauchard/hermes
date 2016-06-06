@@ -26,3 +26,5 @@ localdir = C:\Users\christophe.fauchard\Projets\hermes\tmp\upload files
 statuslogdir = ./tmp/journal/sample_sftp_get1
 
 remotedir = ./upload
+
+logfile = tmp/log/sample_sftp_get1.log

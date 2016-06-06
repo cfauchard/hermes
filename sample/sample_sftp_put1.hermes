@@ -25,5 +25,7 @@ includeregex = .*file.*
 localdir = C:\Users\christophe.fauchard\Projets\hermes\tmp\upload files
 statuslogdir = ./tmp/journal/sample_sftp_put1
 
+logfile = tmp/log/sample_sftp_put1.log
+
 remotedir = ./upload
 

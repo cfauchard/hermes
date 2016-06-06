@@ -19,9 +19,47 @@ import logging
 #
 # command line parsing
 #
-args_parser = argparse.ArgumentParser()
+args_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 args_parser.add_argument("--version", action='version', version='%(prog)s ' + hermes.__version__)
-args_parser.add_argument("file", help="hermes config file")
+args_parser.add_argument("file", help="""
+hermes config file structured as bellow:
+
+Mandatory keys:
+
+[hermes]
+
+name = name of the transfer
+user = chris
+
+cryptedpassword = crypted password using zcrypt utility
+or
+private_key = private key path
+
+host = hostname or ip
+
+protocol = sftp or ftp
+
+deleteflag = yes or no
+activation = yes or no
+command = put or get
+
+localdir = tmp/upload/sample_sftp_get2
+remotedir = tmp
+
+
+Optional keys:
+
+excluderegex = exclude files containing the mmotif
+               (not match all)
+includeregex = regex if file contain the motif,
+               it is transfered (not match all)
+
+statuslogdir = path of the status directory
+backupdir = path of the backup directory
+
+logfile = path of the rotated log file
+
+""")
 args_parser.add_argument("--zkey", help="zeus secret key")
 args = args_parser.parse_args()
 

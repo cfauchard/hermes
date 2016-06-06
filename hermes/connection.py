@@ -73,10 +73,16 @@ class Connection:
             self.backupdir_base = self.parser.get('hermes', 'backupdir')
             self.backupdir = zeus.file.DayArchivePath(self.backupdir_base)
             self.log.logger.info("backupdir %s created", self.backupdir.path)
+        else:
+            self.backupdir = None
+            self.log.logger.info("no backupdir")
         if self.parser.has_option('hermes', 'statuslogdir'):
             self.statuslogdir_base = self. parser.get('hermes', 'statuslogdir')
             self.statuslogdir = zeus.file.DayArchivePath(self.statuslogdir_base)
             self.log.logger.info("statuslogdir %s created", self.statuslogdir.path)
+        else:
+            self.statuslogdir = None
+            self.log.logger.info("no statuslogdir")
 
         #
         # getting mandatory parameters
@@ -199,11 +205,13 @@ class Connection:
             f.close()
 
     def write_backup(self, file):
-        self.log.logger.info("backup file %s to %s",
-                                file,
-                                os.path.join(self.backupdir.path, os.path.basename(file)))
-        shutil.copyfile(file,
-                        os.path.join(self.backupdir.path, os.path.basename(file)))
+
+        if self.backupdir is not None:
+            self.log.logger.info("backup file %s to %s",
+                                    file,
+                                    os.path.join(self.backupdir.path, os.path.basename(file)))
+            shutil.copyfile(file,
+                            os.path.join(self.backupdir.path, os.path.basename(file)))
 
     def get_file(self, file):
 
@@ -232,9 +240,9 @@ class Connection:
         except PermissionError as error:
             self.status = "permission denied"
             self.statuscode = -2
-        # except:
-        #     self.status = "unknown error"
-        #     self.statuscode = -1
+        except:
+            self.status = "unknown error"
+            self.statuscode = -1
 
         self.write_status(file)
 

@@ -197,7 +197,7 @@ class Connection:
                                  os.path.join(self.statuslogdir.path, os.path.basename(file)),
                                  self.status)
             f = open(os.path.join(self.statuslogdir.path, os.path.basename(file)) + ".idx", 'w')
-            f.write("%s;%d;%s;%d;%s" % (os.path.join(self.localdir, os.path.basename(file)),
+            f.write("%s,%d,%s,%d,%s" % (os.path.join(self.localdir, os.path.basename(file)),
                                         self.last_transfer_size,
                                         date.date_time_iso(),
                                         self.statuscode,

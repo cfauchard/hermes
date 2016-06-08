@@ -217,7 +217,11 @@ class Connection:
 
         self.last_transfer = file
         try:
-            self.protocol_connection.get(file, os.path.join(self.localdir, file))
+            self.protocol_connection.get(file, os.path.join(self.localdir, file + ".tmp"))
+            self.log.logger.info("local rename %s to %s",
+                            os.path.join(self.localdir, file + ".tmp"),
+                            os.path.join(self.localdir, file))
+            os.rename(os.path.join(self.localdir, file + ".tmp"), os.path.join(self.localdir, file))
             self.last_transfer_size = os.path.getsize(os.path.join(self.localdir, file))
             self.bytes_received += self.last_transfer_size
 
@@ -241,6 +245,7 @@ class Connection:
             self.status = "permission denied"
             self.statuscode = -2
         except:
+            self.log.logger.warn("unknown error catched")
             self.status = "unknown error"
             self.statuscode = -1
 
@@ -330,7 +335,12 @@ class Connection:
     def put_file(self, file):
         self.last_transfer = file
         try:
-            self.protocol_connection.put(file, os.path.basename(file))
+            self.protocol_connection.put(file, os.path.basename(file + ".tmp"))
+            self.log.logger.info("remote rename %s to %s",
+                                 os.path.basename(file + ".tmp"),
+                                 os.path.basename(file))
+            self.protocol_connection.rename(os.path.basename(file + ".tmp"),
+                                            os.path.basename(file))
             self.last_transfer_size = os.path.getsize(file)
             self.bytes_send += self.last_transfer_size
 
@@ -353,9 +363,10 @@ class Connection:
         except PermissionError as error:
             self.status = "permission denied"
             self.statuscode = -2
-        except:
-            self.status = "unknown error"
-            self.statuscode = -1
+        # except:
+        #     self.log.logger.warn("unknown error catched")
+        #     self.status = "unknown error"
+        #     self.statuscode = -1
 
         self.write_status(file)
 

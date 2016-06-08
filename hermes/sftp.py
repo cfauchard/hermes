@@ -139,7 +139,13 @@ class SFTPConnection():
     def remove(self, path):
         if not self.is_dir(path):
             self.sftp.remove(path)
-            
+
+    #
+    # remove remote path
+    #
+    def rename(self, src, dest):
+        self.sftp.rename(src, dest)
+
     #
     # close the connection
     #

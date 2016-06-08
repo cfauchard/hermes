@@ -23,8 +23,9 @@ excluderegex = \.tmp$
 includeregex = .*file.*
 
 localdir = C:\Users\christophe.fauchard\Projets\hermes\tmp\upload files
-statuslogdir = ./tmp/journal/sample_sftp_get1
+statuslogdir = tmp/journal/sample_sftp_get1
+backupdir = tmp/backup/sample_sftp_get1
 
-remotedir = ./upload
+remotedir = upload
 
 logfile = tmp/log/sample_sftp_get1.log

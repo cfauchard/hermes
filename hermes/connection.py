@@ -37,7 +37,10 @@ class Connection:
             #
             # create a daily switch log
             #
-            self.log = zeus.log.Log(self.parser.get('hermes', 'logfile'), frequence='d')
+            self.log = zeus.log.Log(
+                self.parser.get('hermes', 'logfile'),
+                size=1024 * 512
+            )
         else:
 
             #
@@ -375,3 +378,4 @@ class Connection:
             self.commands[self.command](callback)
         except KeyError:
             raise hermes.exception.CommandUnsupportedException(self.command)
+

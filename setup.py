@@ -12,7 +12,7 @@ setup(name='hermes',
       author_email='christophe.fauchard@gmail.com',
       license='GPLV3',
       packages=['hermes'],
-      scripts=['bin/hcmd.py'],
+      scripts=['bin/hcmd.py','bin/hermesd.py'],
       data_files=[
             (
                   'sample/hermes', [

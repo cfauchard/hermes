@@ -15,6 +15,7 @@ if sys.version_info < (3, 5):
     raise RuntimeError('You need Python 3.5+ for this module.')
 
 import hermes.connection
+import hermes.thread
 import hermes.ftp
 import hermes.sftp
 import hermes.exception

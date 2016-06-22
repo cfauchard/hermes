@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # coding: utf-8
 #-----------------------------------------------------------------
-# hermes: hcmd.py
+# hermes: hermesd.py
 #
-# hermes command line tool
+# hermes daemon
 #
 # Copyright (C) 2016, Christophe Fauchard
 #-----------------------------------------------------------------
@@ -15,14 +15,16 @@ import os
 import configparser
 import paramiko
 import logging
+import threading
+import time
 
 #
 # command line parsing
 #
 args_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 args_parser.add_argument("--version", action='version', version='%(prog)s ' + hermes.__version__)
-args_parser.add_argument("file", help="""
-hermes config file structured as bellow:
+args_parser.add_argument("directory", help="""
+directory containing hermes config files (*.hermes) structured as bellow:
 
 Mandatory keys:
 
@@ -71,7 +73,7 @@ try:
     print("hermes version: " + hermes.__version__)
     print("zeus version: " + zeus.__version__)
 
-    print("hermes config file: " + args.file)
+    print("hermes config file: " + args.directory)
 
     #
     # ZPK variable set with option in command line
@@ -80,14 +82,23 @@ try:
         os.environ["ZPK"] = args.zkey
         print("zeus key:", args.zkey)
 
-    #
-    # create an hermes connection object
-    #
-    connection = hermes.connection.Connection(args.file)
-    connection.log.set_level(logging.INFO)
-    connection.connect()
-    connection.start()
-    connection.close()
+    threadLock = threading.Lock()
+    threads = []
+
+    thread1 = hermes.thread.ThreadedConnection(1, "thread1")
+    thread2 = hermes.thread.ThreadedConnection(2, "thread2")
+
+    thread1.start()
+    threads.append(thread1)
+
+    time.sleep(5)
+
+    thread2.start()
+    threads.append(thread2)
+
+    for t in threads:
+        t.join()
+    print("Exiting Main Thread")
 
 #
 # exceptions handling

@@ -29,3 +29,4 @@ backupdir = tmp/backup/sample_sftp_get1
 remotedir = upload
 
 logfile = tmp/log/sample_sftp_get1.log
+

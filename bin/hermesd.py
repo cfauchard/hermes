@@ -11,95 +11,58 @@
 import hermes
 import zeus
 import argparse
-import os
 import configparser
 import paramiko
-import logging
-import threading
 import time
+import signal
 
+def signint_handler():
+    print("signal 15 handled")
+    thread_monitor.stop()
+    thread_monitor.join()
+    thread_monitor.close()
 
 #
 # command line parsing
 #
 args_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 args_parser.add_argument("--version", action='version', version='%(prog)s ' + hermes.__version__)
-args_parser.add_argument("directory", help="""
-directory containing hermes config files (*.hermes) structured as bellow:
+args_parser.add_argument("config_file", help="""
+daemon configuration file
 
 Mandatory keys:
 
-[hermes]
+[hermesd]
 
-name = name of the transfer
-user = chris
-
-cryptedpassword = crypted password using zcrypt utility
-or
-private_key = private key path
-
-host = hostname or ip
-
-protocol = sftp or ftp
-
-deleteflag = yes or no
-activation = yes or no
-command = put or get
-
-localdir = tmp/upload/sample_sftp_get2
-remotedir = tmp
-
-
-Optional keys:
-
-excluderegex = exclude files containing the mmotif
-               (not match all)
-includeregex = regex if file contain the motif,
-               it is transfered (not match all)
-
-statuslogdir = path of the status directory
-backupdir = path of the backup directory
-
+directory = path of hermes configuration files
 logfile = path of the rotated log file
+pidfile = path of pid file
 
 """)
-args_parser.add_argument("--zkey", help="zeus secret key")
 args = args_parser.parse_args()
 
 try:
 
-    #
-    # display version and config informations
-    #
-    print("hermes version: " + hermes.__version__)
-    print("zeus version: " + zeus.__version__)
-
-    print("hermes config file: " + args.directory)
 
     #
-    # ZPK variable set with option in command line
+    # instanciate thread monitor
     #
-    if args.zkey is not None:
-        os.environ["ZPK"] = args.zkey
-        print("zeus key:", args.zkey)
+    thread_monitor = hermes.thread.ThreadMonitor(args.config_file)
+    thread_monitor.load()
 
-    threadLock = threading.Lock()
-    threads = []
+    #
+    # install SIGINT handler
+    #
+    signal.signal(signal.SIGINT, signint_handler)
 
-    thread1 = hermes.thread.ThreadedConnection(1, "thread1")
-    thread2 = hermes.thread.ThreadedConnection(2, "thread2")
+    thread_monitor.run()
+    time.sleep(2)
 
-    thread1.start()
-    threads.append(thread1)
+    signint_handler()
 
-    time.sleep(5)
-
-    thread2.start()
-    threads.append(thread2)
-
-    for t in threads:
-        t.join()
-    print("Exiting Main Thread")
+    # thread_monitor.stop()
+    # thread_monitor.join()
+    # thread_monitor.close()
 
 #
 # exceptions handling

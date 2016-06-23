@@ -35,7 +35,7 @@ class Connection:
         if self.parser.has_option('hermes', 'logfile'):
 
             #
-            # create a daily switch log
+            # create 512Ko switch log
             #
             self.log = zeus.log.Log(
                 self.parser.get('hermes', 'logfile'),

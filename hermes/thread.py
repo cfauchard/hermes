@@ -10,14 +10,96 @@
 
 import threading
 import time
+import zeus
+import hermes
+import glob
+import os
 
 class ThreadedConnection(threading.Thread):
-    def __init__(self, threadID, name):
+    def __init__(self, hermes_config_file):
         threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
+        self._is_running = True
+        self.hermes_config_file = hermes_config_file
 
     def run(self):
-        print("Starting", self.threadID, self.name)
-        time.sleep(10)
-        print("Exiting", self.threadID, self.name)
+        print("Starting", self.getName())
+        while self._is_running is True:
+            print("computing...", self.getName(), self.hermes_config_file)
+            time.sleep(1)
+        print("Exiting", self.getName())
+
+    def stop(self):
+        self._is_running = False
+
+
+class ThreadMonitor():
+    def __init__(self, hermesd_config_file):
+
+        #
+        # create an ini file parser and read config file
+        #
+        self.parser = zeus.parser.ConfigParser(hermesd_config_file)
+
+        #
+        # logfile
+        #
+        if self.parser.has_option('hermesd', 'logfile'):
+
+            #
+            # create 512Ko switch log
+            #
+            self.log = zeus.log.Log(
+                self.parser.get('hermesd', 'logfile'),
+                size=1024 * 512
+            )
+        else:
+
+            #
+            # create an stdout only logger
+            #
+            self.log = zeus.log.Log()
+
+        self.log.logger.info("initializing Hermes thread monitor with %s", hermesd_config_file)
+        self.log.logger.info("hermes %s", hermes.__version__)
+        self.log.logger.info("zeus %s", zeus.__version__)
+
+        #
+        # create pid file
+        #
+        self.pidfile = self.parser.get("hermesd", "pidfile")
+        fd = open(self.pidfile, "w")
+        fd.write("%d" % os.getpid())
+        fd.close()
+
+    def load(self):
+        self.threads = []
+
+        #
+        # list hermes files in directory and initialise threads
+        #
+        for hermes_file in glob.glob(self.parser.get('hermesd', 'directory') + "/*.hermes"):
+            thread = hermes.thread.ThreadedConnection(hermes_file)
+            self.threads.append(thread)
+            self.log.logger.info("number of threads: %d", len(self.threads))
+
+    def run(self):
+
+        for thread in self.threads:
+            self.log.logger.info("starting thread for hermes config file %s", thread.hermes_config_file)
+            thread.start()
+
+    def stop(self):
+
+        for thread in self.threads:
+            self.log.logger.info("stopping thread for hermes config file %s", thread.hermes_config_file)
+            thread.stop()
+
+    def join(self):
+
+        for thread in self.threads:
+            self.log.logger.info("waiting for thread termination %s", thread.getName())
+            thread.stop()
+
+    def close(self):
+        self.log.logger.info("remove pidfile %s", self.pidfile)
+        os.remove(self.pidfile)

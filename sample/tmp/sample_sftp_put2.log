@@ -1,0 +1,6 @@
+2016-06-05 00:38:49,731 :: transport :: INFO :: Connected (version 2.0, client OpenSSH_6.7p1)
+2016-06-05 00:38:49,879 :: transport :: INFO :: Authentication (password) successful!
+2016-06-05 00:38:49,898 :: sftp :: INFO :: [chan 0] Opened sftp connection (server version 3)
+2016-06-05 00:40:03,803 :: transport :: INFO :: Connected (version 2.0, client OpenSSH_6.7p1)
+2016-06-05 00:40:03,949 :: transport :: INFO :: Authentication (password) successful!
+2016-06-05 00:40:03,982 :: sftp :: INFO :: [chan 0] Opened sftp connection (server version 3)

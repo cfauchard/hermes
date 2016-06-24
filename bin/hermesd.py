@@ -58,11 +58,11 @@ try:
     thread_monitor.run()
     time.sleep(2)
 
-    signint_handler()
+    #signint_handler()
 
-    # thread_monitor.stop()
-    # thread_monitor.join()
-    # thread_monitor.close()
+    thread_monitor.stop()
+    thread_monitor.join()
+    thread_monitor.close()
 
 #
 # exceptions handling
@@ -86,5 +86,7 @@ except hermes.exception.ChdirException as error:
     print("ERROR change directory", error.dir)
 except zeus.exception.FileNotFoundException as error:
     print("ERROR file not found", error.filename)
+except zeus.exception.DirectoryNotFoundException as error:
+    print("ERROR directory not found", error.directory)
 except paramiko.ssh_exception.SSHException as error:
     print("ERROR sftp connexion", error.username)

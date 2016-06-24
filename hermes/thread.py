@@ -71,6 +71,12 @@ class ThreadMonitor():
         fd.write("%d" % os.getpid())
         fd.close()
 
+        self.directory = self.parser.get('hermesd', 'directory')
+
+        if not os.path.isdir(self.directory):
+            self.log.logger.error("hermes config file directory not found: %s", self.directory)
+            raise zeus.exception.DirectoryNotFoundException(self.directory)
+
     def load(self):
         self.threads = []
 
@@ -78,6 +84,7 @@ class ThreadMonitor():
         # list hermes files in directory and initialise threads
         #
         for hermes_file in glob.glob(self.parser.get('hermesd', 'directory') + "/*.hermes"):
+            self.log.logger.info("adding thread for hermes config file %s", hermes_file)
             thread = hermes.thread.ThreadedConnection(hermes_file)
             self.threads.append(thread)
             self.log.logger.info("number of threads: %d", len(self.threads))
@@ -102,4 +109,5 @@ class ThreadMonitor():
 
     def close(self):
         self.log.logger.info("remove pidfile %s", self.pidfile)
+        self.log.logger.info("closing hermes thread monitor")
         os.remove(self.pidfile)

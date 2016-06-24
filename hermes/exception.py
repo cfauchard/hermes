@@ -20,11 +20,6 @@ class AuthenticationException(Exception):
         self.username = username
         self.private_key = private_key
 
-class FileNotFoundException(Exception):
-
-    def __init__(self, filename):
-        self.filename = filename
-
 class ActivationException(Exception):
 
     def __init__(self):

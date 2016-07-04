@@ -114,6 +114,13 @@ class Connection:
         self.log.logger.info("protocol %s", self.protocol)
 
         #
+        # Getting optionnal parameters
+        #
+        if self.parser.has_option('hermes', 'port'):
+            self.port = self.parser.get('hermes', 'port')
+            self.log.logger.info("port %s", self.port)
+
+        #
         # authentication options
         #
         if self.parser.has_option('hermes', 'private_key'):
@@ -157,21 +164,23 @@ class Connection:
         if self.protocol == "sftp":
 
             #
-            # create an hermes.SFTPConnection object with private key
+            # create an hermes.SFTPConnection object with private key authentication
             #
             if self.private_key is not None:
                 self.protocol_connection = hermes.sftp.SFTPConnection(
                     self.host,
                     self.user,
+                    port=self.port,
                     private_key=self.private_key)
 
             #
-            # create an hermes.SFTPConnection object with login/password
+            # create an hermes.SFTPConnection object with login/password authentication
             #
             elif self.password is not None:
                 self.protocol_connection = hermes.sftp.SFTPConnection(
                     self.host,
                     self.user,
+                    port=self.port,
                     password=self.password)
 
         #

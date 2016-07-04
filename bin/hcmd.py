@@ -49,6 +49,8 @@ remotedir = tmp
 
 Optional keys:
 
+port = custom connection port
+
 excluderegex = exclude files containing the mmotif
                (not match all)
 includeregex = regex if file contain the motif,

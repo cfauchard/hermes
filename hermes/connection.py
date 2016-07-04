@@ -117,8 +117,8 @@ class Connection:
         # Getting optionnal parameters
         #
         if self.parser.has_option('hermes', 'port'):
-            self.port = self.parser.get('hermes', 'port')
-            self.log.logger.info("port %s", self.port)
+            self.port = int(self.parser.get('hermes', 'port'))
+            self.log.logger.info("port %d", self.port)
 
         #
         # authentication options

@@ -156,6 +156,11 @@ class Connection:
         f.write("%s,%d,%s" % (zeus.date.Date().date_time_iso(), status, libelle))
         f.close()
 
+    def write_last_transfer(self, status_log_file):
+        f = open(os.path.join(self.statuslogdir_base, "last_transfert"), 'w')
+        f.write("%s" % status_log_file)
+        f.close()
+
     def connect(self):
 
         #
@@ -204,17 +209,19 @@ class Connection:
 
         if self.statuslogdir is not None:
             date = zeus.date.Date()
+            status_log_file = os.path.join(self.statuslogdir.path, os.path.basename(file)) + ".idx"
 
             self.log.logger.info("writing in statuslogdir %s %s",
                                  os.path.join(self.statuslogdir.path, os.path.basename(file)),
                                  self.status)
-            f = open(os.path.join(self.statuslogdir.path, os.path.basename(file)) + ".idx", 'w')
+            f = open(status_log_file, 'w')
             f.write("%s,%d,%s,%d,%s" % (os.path.join(self.localdir, os.path.basename(file)),
                                         self.last_transfer_size,
                                         date.date_time_iso(),
                                         self.statuscode,
                                         self.status))
             f.close()
+            self.write_last_transfer(status_log_file)
 
     def write_backup(self, file):
 

@@ -16,15 +16,20 @@ import glob
 import os
 
 class ThreadedConnection(threading.Thread):
-    def __init__(self, hermes_config_file):
+    def __init__(self, chain_name, hermes_config_files):
         threading.Thread.__init__(self)
         self._is_running = True
-        self.hermes_config_file = hermes_config_file
+        self.chain_name = chain_name
+        self.hermes_config_files = hermes_config_files
 
     def run(self):
         print("Starting", self.getName())
         while self._is_running is True:
-            print("computing...", self.getName(), self.hermes_config_file)
+            print("computing %s for chain %s...", self.getName(), self.chain_name)
+
+            for hermes_config_file in self.hermes_config_files:
+                print("launching hermes connection with config file %s" % hermes_config_file)
+
             time.sleep(1)
         print("Exiting", self.getName())
 
@@ -83,22 +88,31 @@ class ThreadMonitor():
         #
         # list hermes files in directory and initialise threads
         #
-        for hermes_file in glob.glob(self.parser.get('hermesd', 'directory') + "/*.hermes"):
-            self.log.logger.info("adding thread for hermes config file %s", hermes_file)
-            thread = hermes.thread.ThreadedConnection(hermes_file)
+        # for hermes_file in glob.glob(self.parser.get('hermesd', 'directory') + "/*.hermes"):
+
+        for chain in self.parser.items("monitor"):
+            self.log.logger.info("adding chain for hermes config file %s", chain)
+
+            hermes_files = []
+            for hermes_file in self.parser.get("monitor", chain[0]).split(','):
+                self.log.logger.info("adding hermes config file %s for chain %s", hermes_file.lstrip(), chain[0])
+                hermes_files.append(hermes_file.lstrip().rstrip())
+
+            self.log.logger.info("adding thread for hermes config files %s", hermes_files)
+            thread = hermes.thread.ThreadedConnection(chain[0], hermes_files)
             self.threads.append(thread)
             self.log.logger.info("number of threads: %d", len(self.threads))
 
     def run(self):
 
         for thread in self.threads:
-            self.log.logger.info("starting thread for hermes config file %s", thread.hermes_config_file)
+            self.log.logger.info("starting thread for chain %s", thread.chain_name)
             thread.start()
 
     def stop(self):
 
         for thread in self.threads:
-            self.log.logger.info("stopping thread for hermes config file %s", thread.hermes_config_file)
+            self.log.logger.info("stopping thread for chain %s", thread.chain_name)
             thread.stop()
 
     def join(self):

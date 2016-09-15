@@ -25,11 +25,21 @@ class ThreadedConnection(threading.Thread):
     def run(self):
         print("Starting", self.getName())
         while self._is_running is True:
-            print("computing %s for chain %s...", self.getName(), self.chain_name)
+            print("computing %s for chain %s..." % ( self.getName(), self.chain_name ))
 
             for hermes_config_file in self.hermes_config_files:
                 print("launching hermes connection with config file %s" % hermes_config_file)
 
+                #
+                # create an hermes connection object
+                #
+                # self.connection = hermes.connection.Connection(hermes_config_file)
+                # self.connection.log.set_level(logging.INFO)
+                # self.connection.connect()
+                # self.connection.start()
+                # self.connection.close()
+
+            print("sleeping...")
             time.sleep(1)
         print("Exiting", self.getName())
 

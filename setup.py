@@ -23,7 +23,7 @@ setup(name='cfa_hermes',
             )
       ],
       install_requires=[
-            'zeus >= 3.2.0.b1',
+            'cfa_zeus >= 3.3.0.b1',
             'paramiko'
       ],
       zip_safe=False)

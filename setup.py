@@ -4,7 +4,7 @@ import glob
 
 exec(compile(open('hermes/_version.py').read(), 'hermes/_version.py', 'exec'))
 
-setup(name='hermes',
+setup(name='cfa_hermes',
       version=__version__,
       description='file tranfer monitor protocols ftp, sftp',
       url='https://github.com/cfauchard/hermes',

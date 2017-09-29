@@ -1,0 +1,3 @@
+- version v2.6.0.b1
+- clean code, syntax standards adaptation
+- add docstrings for all modules and submodules files

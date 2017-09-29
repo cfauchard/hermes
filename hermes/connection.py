@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 # coding: utf8
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 # hermes: connection.py
 #
 # Define generic hermes connection class
 #
-# Copyright (C) 2016, Christophe Fauchard
-#-----------------------------------------------------------------
+# Copyright (C) 2016-2017, Christophe Fauchard
+# -----------------------------------------------------------------
+"""
+Submodule: hermes.connection
+
+Hermes submodule, define hermes multi protocols connection class
+
+Copyright (C) 2016-2017, Christophe Fauchard
+"""
 
 import zeus
 import hermes
@@ -14,11 +21,13 @@ import re
 import os
 import shutil
 
+
 def default_callback(connection, file, size, status):
     connection.log.logger.info("%s %d bytes : %s",
                                file,
                                size,
                                status)
+
 
 class Connection:
 
@@ -48,7 +57,8 @@ class Connection:
             #
             self.log = zeus.log.Log()
 
-        self.log.logger.info("initializing Hermes Connection whith %s", hermes_config_file)
+        self.log.logger.info(
+            "initializing Hermes Connection whith %s", hermes_config_file)
         self.log.logger.info("hermes %s", hermes.__version__)
         self.log.logger.info("zeus %s", zeus.__version__)
 
@@ -81,8 +91,10 @@ class Connection:
             self.log.logger.info("no backupdir")
         if self.parser.has_option('hermes', 'statuslogdir'):
             self.statuslogdir_base = self. parser.get('hermes', 'statuslogdir')
-            self.statuslogdir = zeus.file.DayArchivePath(self.statuslogdir_base)
-            self.log.logger.info("statuslogdir %s created", self.statuslogdir.path)
+            self.statuslogdir = zeus.file.DayArchivePath(
+                self.statuslogdir_base)
+            self.log.logger.info(
+                "statuslogdir %s created", self.statuslogdir.path)
         else:
             self.statuslogdir = None
             self.log.logger.info("no statuslogdir")
@@ -100,7 +112,8 @@ class Connection:
         if self.parser.get('hermes', 'protocol') == "sftp":
             self.protocol = "sftp"
         else:
-            raise hermes.exception.ProtocolUnsupportedException(self.parser.get('hermes', 'protocol'))
+            raise hermes.exception.ProtocolUnsupportedException(
+                self.parser.get('hermes', 'protocol'))
 
         #
         # display mandatory parameters
@@ -127,14 +140,17 @@ class Connection:
             self.private_key = self.parser.get('hermes', 'private_key')
             self.password = None
             self.crypted_password = None
-            self.log.logger.info("private key authentication %s", self.private_key)
+            self.log.logger.info(
+                "private key authentication %s", self.private_key)
         elif (self.parser.has_option('hermes', 'cryptedpassword')):
-            self.crypted_password = self.parser.get('hermes', 'cryptedpassword')
+            self.crypted_password = self.parser.get(
+                'hermes', 'cryptedpassword')
             self.cipher = zeus.crypto.Vigenere()
             self.cipher.decrypt(self.crypted_password)
             self.password = self.cipher.get_decrypted_datas_utf8()
             self.private_key = None
-            self.log.logger.info("password authentication %s", self.crypted_password)
+            self.log.logger.info(
+                "password authentication %s", self.crypted_password)
             self.log.logger.info("zeus encryption key %s", os.environ["ZPK"])
 
 
@@ -142,18 +158,24 @@ class Connection:
         # regex compilation
         #
         if self.parser.has_option('hermes', 'excluderegex'):
-            self.exclude_regex = re.compile(self.parser.get('hermes', 'excluderegex'))
+            self.exclude_regex = re.compile(
+                self.parser.get('hermes', 'excluderegex'))
         else:
             self.exclude_regex = None
 
         if self.parser.has_option('hermes', 'includeregex'):
-            self.include_regex = re.compile(self.parser.get('hermes', 'includeregex'))
+            self.include_regex = re.compile(
+                self.parser.get('hermes', 'includeregex'))
         else:
             self.include_regex = None
 
     def write_last_connection(self, status, libelle):
-        f = open(os.path.join(self.statuslogdir_base,"last_connection"), 'w')
-        f.write("%s,%d,%s" % (zeus.date.Date().date_time_iso(), status, libelle))
+        f = open(
+            os.path.join(
+                self.statuslogdir_base, "last_connection"), 'w')
+        f.write(
+            "%s,%d,%s" % (
+                zeus.date.Date().date_time_iso(), status, libelle))
         f.close()
 
     def write_last_transfer(self, status_log_file):
@@ -169,7 +191,8 @@ class Connection:
         if self.protocol == "sftp":
 
             #
-            # create an hermes.SFTPConnection object with private key authentication
+            # create an hermes.SFTPConnection object
+            # with private key authentication
             #
             if self.private_key is not None:
                 self.protocol_connection = hermes.sftp.SFTPConnection(
@@ -179,7 +202,8 @@ class Connection:
                     private_key=self.private_key)
 
             #
-            # create an hermes.SFTPConnection object with login/password authentication
+            # create an hermes.SFTPConnection object
+            # with login/password authentication
             #
             elif self.password is not None:
                 self.protocol_connection = hermes.sftp.SFTPConnection(
@@ -209,13 +233,17 @@ class Connection:
 
         if self.statuslogdir is not None:
             date = zeus.date.Date()
-            status_log_file = os.path.join(self.statuslogdir.path, os.path.basename(file)) + ".idx"
+            status_log_file = os.path.join(
+                self.statuslogdir.path, os.path.basename(file)) + ".idx"
 
             self.log.logger.info("writing in statuslogdir %s %s",
-                                 os.path.join(self.statuslogdir.path, os.path.basename(file)),
+                                 os.path.join(
+                                     self.statuslogdir.path, os.path.basename(
+                                         file)),
                                  self.status)
             f = open(status_log_file, 'w')
-            f.write("%s,%d,%s,%d,%s" % (os.path.join(self.localdir, os.path.basename(file)),
+            f.write("%s,%d,%s,%d,%s" % (os.path.join(
+                self.localdir, os.path.basename(file)),
                                         self.last_transfer_size,
                                         date.date_time_iso(),
                                         self.statuscode,
@@ -227,21 +255,29 @@ class Connection:
 
         if self.backupdir is not None:
             self.log.logger.info("backup file %s to %s",
-                                    file,
-                                    os.path.join(self.backupdir.path, os.path.basename(file)))
+                                 file,
+                                 os.path.join(
+                                     self.backupdir.path, os.path.basename(
+                                         file)))
             shutil.copyfile(file,
-                            os.path.join(self.backupdir.path, os.path.basename(file)))
+                            os.path.join(
+                                self.backupdir.path, os.path.basename(file)))
 
     def get_file(self, file):
 
         self.last_transfer = file
         try:
-            self.protocol_connection.get(file, os.path.join(self.localdir, file + ".tmp"))
+            self.protocol_connection.get(
+                file, os.path.join(self.localdir, file + ".tmp"))
             self.log.logger.info("local rename %s to %s",
-                            os.path.join(self.localdir, file + ".tmp"),
-                            os.path.join(self.localdir, file))
-            os.rename(os.path.join(self.localdir, file + ".tmp"), os.path.join(self.localdir, file))
-            self.last_transfer_size = os.path.getsize(os.path.join(self.localdir, file))
+                                 os.path.join(self.localdir, file + ".tmp"),
+                                 os.path.join(self.localdir, file))
+            os.rename(
+                os.path.join(
+                    self.localdir, file + ".tmp"), os.path.join(
+                        self.localdir, file))
+            self.last_transfer_size = os.path.getsize(
+                os.path.join(self.localdir, file))
             self.bytes_received += self.last_transfer_size
 
             #
@@ -300,7 +336,7 @@ class Connection:
             #
             # callback function
             #
-            if not callback == None:
+            if callback is not None:
                 callback(self,
                          file,
                          self.last_transfer_size,
@@ -342,14 +378,13 @@ class Connection:
             #
             # callback function
             #
-            if not callback == None:
+            if callback is not None:
                 callback(self,
                          file,
                          self.last_transfer_size,
                          self.status)
 
         self.log.logger.info("total sent: %d bytes", self.bytes_send)
-
 
     def put_file(self, file):
         self.last_transfer = file
@@ -394,4 +429,3 @@ class Connection:
             self.commands[self.command](callback)
         except KeyError:
             raise hermes.exception.CommandUnsupportedException(self.command)
-

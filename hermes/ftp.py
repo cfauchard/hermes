@@ -1,18 +1,28 @@
-#-----------------------------------------------------------------
+#!/usr/bin/env python3
+# coding: utf8
+# -----------------------------------------------------------------
 # hermes: ftp.py
 #
 # Define FTP connection class based on ftplib
 #
 # Copyright (C) 2016, Christophe Fauchard
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
+"""
+Submodule: hermes.ftp
+
+Hermes submodule, define FTP class for Connection class
+
+Copyright (C) 2016-2017, Christophe Fauchard
+"""
 
 import ftplib
+import sys
 from ftplib import FTP
 
 
 class FTPConnection(FTP):
     """
-    Surcouche d'abstraction SFTP basée sur ftplib
+    SFTP abstract layer based on ftplib
     """
 
     def __init__(self, host, username, port=21, password=None):
@@ -30,13 +40,13 @@ class FTPConnection(FTP):
         try:
             self.login(username, password)
         except ftplib.all_errors:
-            raise AuthenticationException(username, password)            
+            raise AuthenticationException(username, OPOPpassword)            
 
     def list(self):
         return(self.nlst())
-    
+
     def get(self, remotepath, localpath=None):
-        if localpath == None:
+        if localpath is None:
             localpath = remotepath
 
         try:
@@ -49,7 +59,3 @@ class FTPConnection(FTP):
     def __exit__(self, type, value, tb):
         self.quit()
         self.close()
-
-
-        
-

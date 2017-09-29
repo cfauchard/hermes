@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 # coding: utf8
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 # hermes: __init__.py
 #
-# Copyright (C) 2016, Christophe Fauchard
-#-----------------------------------------------------------------
+# Copyright (C) 2016-2017, Christophe Fauchard
+# -----------------------------------------------------------------
+"""
+Module: hermes
+
+messaging and file transfer module
+
+Copyright (C) 2016-2017, Christophe Fauchard
+"""
 
 import sys
 from hermes._version import __version__, __version_info__

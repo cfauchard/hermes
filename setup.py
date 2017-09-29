@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+# coding: utf8
+# -----------------------------------------------------------------
+# hermes: setup.py
+#
+# setup python package configuration
+#
+# Copyright (C) 2016-2017, Christophe Fauchard
+# -----------------------------------------------------------------
 from setuptools import setup
 import os
 import glob
@@ -12,7 +21,7 @@ setup(name='cfa_hermes',
       author_email='christophe.fauchard@gmail.com',
       license='GPLV3',
       packages=['hermes'],
-      scripts=['bin/hcmd.py','bin/hermesd.py'],
+      scripts=['bin/hcmd.py', 'bin/hermesd.py'],
       data_files=[
             (
                   'sample/hermes', [

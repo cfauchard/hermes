@@ -1,24 +1,31 @@
 #!/usr/bin/env python3
 # coding: utf8
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 # hermes: sftp.py
 #
 # Define SFTP connection class based on paramiko package
 #
-# Copyright (C) 2016, Christophe Fauchard
-#-----------------------------------------------------------------
+# Copyright (C) 2016-2017, Christophe Fauchard
+# -----------------------------------------------------------------
+"""
+Submodule: hermes.sftp
+
+Hermes submodule, define sFTP class for Connection class
+
+Copyright (C) 2016-2017, Christophe Fauchard
+"""
 
 import stat
 import hermes
-    
-import paramiko, sys
+import paramiko
 from hermes.exception import AuthenticationException
+
 
 class SFTPConnection():
 
     """
     SFTP Class based on Paramiko
-    
+
     Attributes:
     - host
     - port
@@ -27,7 +34,7 @@ class SFTPConnection():
     - private_key_file
     - sftp: paramiko.SFTPClient object
     - transport: paramiko.Transport object
-    
+
     Methods:
     - chdir(dir)
     - list()
@@ -39,9 +46,15 @@ class SFTPConnection():
     - close()
     """
 
-    def __init__(self, host, username, port=22, password=None, private_key=None):
+    def __init__(
+            self,
+            host,
+            username,
+            port=22,
+            password=None,
+            private_key=None):
         self.host = host
-        self.port = port        
+        self.port = port
         self.username = username
         self.password = password
         self.private_key_file = private_key
@@ -51,7 +64,7 @@ class SFTPConnection():
         # Open SFTP connection
         #
         try:
-            
+
             #
             # open transport connection
             #
@@ -60,41 +73,47 @@ class SFTPConnection():
             #
             # authentication by private key
             #
-            if ( self.private_key_file != None ):
-                self.private_key = paramiko.RSAKey.from_private_key_file(self.private_key_file)
-                self.transport.connect(username=self.username, pkey=self.private_key)
-            
+            if (self.private_key_file is not None):
+                self.private_key = paramiko.RSAKey.from_private_key_file(
+                    self.private_key_file)
+                self.transport.connect(
+                    username=self.username, pkey=self.private_key)
+
             #
             # authentication by login/password
             #
-            elif ( self.password != None ):
-                self.transport.connect(username=self.username, password=self.password)
+            elif (self.password is not None):
+                self.transport.connect(
+                    username=self.username, password=self.password)
             else:
-                raise AuthenticationException(self.username, self.private_key_file) 
-                
+                raise AuthenticationException(
+                    self.username, self.private_key_file)
+
             self.sftp = paramiko.SFTPClient.from_transport(self.transport)
-            
+
         except paramiko.ssh_exception.AuthenticationException as error:
-            raise AuthenticationException(self.username, self.private_key_file) from error
+            raise AuthenticationException(
+                self.username, self.private_key_file) from error
 
     #
     # chdir
     #
     def chdir(self, dir):
         try:
-            if not self.sftp == None:
+            if self.sftp is not None:
                 self.sftp.chdir(dir)
         except:
             raise hermes.exception.ChdirException(dir)
+
     #
     # list files
     #
     def list(self):
-        if self.sftp == None:
+        if self.sftp is None:
             return(None)
-        
+
         return(self.sftp.listdir())
-    
+
     #
     # test if the remote file is a directory
     #
@@ -104,14 +123,14 @@ class SFTPConnection():
             return(True)
         else:
             return(False)
-    
+
     #
     # get the remote file size
     #
     def get_size(self, path):
         if self.is_dir(path):
             return(0)
-    
+
         st = self.sftp.lstat(path)
         return(st.st_size)
 
@@ -119,20 +138,20 @@ class SFTPConnection():
     # download a file
     #
     def get(self, remotepath, localpath=None):
-        if localpath == None:
+        if localpath is None:
             localpath = remotepath
 
-        self.sftp.get(remotepath, localpath)           
- 
+        self.sftp.get(remotepath, localpath)
+
     #
     # upload a file
     #
     def put(self, localpath, remotepath=None):
-        if remotepath == None:
+        if remotepath is None:
             remotepath = localpath
 
-        self.sftp.put(localpath, remotepath)           
-                        
+        self.sftp.put(localpath, remotepath)
+
     #
     # remove remote path
     #
@@ -149,12 +168,9 @@ class SFTPConnection():
     #
     # close the connection
     #
-    def close(self):   
+    def close(self):
         if self.transport.is_active():
             self.sftp.close()
- 
 
     def __exit__(self, type, value, tb):
         self.close()
-
-

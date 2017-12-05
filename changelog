@@ -1,0 +1,4 @@
+version 2.7.0
+	- add transferedext config file key to add an extension for good
+	transfered files
+	- default port 22 for sftp protocol

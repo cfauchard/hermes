@@ -76,6 +76,7 @@ class Connection:
         self.bytes_send = 0
         self.bytes_received = 0
         self.status = None
+        self.transferedext = None
         self.last_transfer = None
         self.last_transfer_size = 0
 
@@ -111,6 +112,7 @@ class Connection:
         self.deleteflag = self.parser.get('hermes', 'deleteflag')
         if self.parser.get('hermes', 'protocol') == "sftp":
             self.protocol = "sftp"
+            self.port = 22
         else:
             raise hermes.exception.ProtocolUnsupportedException(
                 self.parser.get('hermes', 'protocol'))
@@ -153,6 +155,13 @@ class Connection:
                 "password authentication %s", self.crypted_password)
             self.log.logger.info("zeus encryption key %s", os.environ["ZPK"])
 
+        #
+        # Extensions options
+        #
+        # - transferedext: extension to add to correct transfered files
+        #
+        if self.parser.has_option('hermes', 'transferedext'):
+            self.transferedext = self.parser.get('hermes', 'transferedext')
 
         #
         # regex compilation
@@ -395,6 +404,19 @@ class Connection:
                                  os.path.basename(file))
             self.protocol_connection.rename(os.path.basename(file + ".tmp"),
                                             os.path.basename(file))
+
+            #
+            # transferedext option to rename correct transfered files
+            #
+            if self.transferedext is not None:
+                self.log.logger.info(
+                    "remote transfered rename %s to %s",
+                    os.path.basename(file),
+                    os.path.basename(file) + self.transferedext)
+                self.protocol_connection.rename(
+                    os.path.basename(file),
+                    os.path.basename(file) + self.transferedext)
+            
             self.last_transfer_size = os.path.getsize(file)
             self.bytes_send += self.last_transfer_size
 

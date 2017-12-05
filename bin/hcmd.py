@@ -5,7 +5,7 @@
 #
 # hermes command line tool
 #
-# Copyright (C) 2016, Christophe Fauchard
+# Copyright (C) 2016-2017, Christophe Fauchard
 #-----------------------------------------------------------------
 
 import hermes
@@ -55,6 +55,7 @@ excluderegex = exclude files containing the mmotif
                (not match all)
 includeregex = regex if file contain the motif,
                it is transfered (not match all)
+transferedext = extension to add to correct transfered files
 
 statuslogdir = path of the status directory
 backupdir = path of the backup directory

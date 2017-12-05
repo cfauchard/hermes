@@ -1,0 +1,33 @@
+#-----------------------------------------------------------------
+# hermes: sample_sftp_put3.hermes
+#
+# hermes sample config file
+#
+# Copyright (C) 2016-2017, Christophe Fauchard
+#-----------------------------------------------------------------
+[hermes]
+
+name = sample_sftp_put3
+user = chris
+private_key = /home/chris/.ssh/keys/hermes_rsa
+
+host = localhost
+protocol = sftp
+#port = 22
+
+deleteflag = yes
+activation = yes
+command = put
+
+excluderegex = \.tmp$
+#excluderegex = ^\.
+
+#transferedext = .ok
+
+localdir = /home/chris/tmp/download/sample_sftp_get3
+statuslogdir = /home/chris/tmp/journal/sample_sftp_put3
+backupdir = /home/chris/tmp/backup/sample_sftp_put3
+
+logfile = /home/chris/tmp/log/tmp/sample_sftp_put3.log
+
+remotedir = tmp/upload/sample_sftp_put3
